@@ -6,7 +6,11 @@ jQuery(function ($) {
     function getLocation() {
         $loadArtistsButton.text("Loading...");
         if (navigator.geolocation) {
-            navigator.geolocation.getCurrentPosition(showPosition, showError);
+            navigator.geolocation.getCurrentPosition(showPosition, showError, {
+                enableHighAccuracy: true,
+                timeout: 5000,
+                maximumAge: 0
+            });
         } else {
             $loadArtistsButton.removeClass('btn-primary').addClass('btn-danger');
             $loadArtistsButton.text("Location not supported.");
@@ -21,14 +25,17 @@ jQuery(function ($) {
     }
 
     function showPosition(position) {
-        console.log("Latitude: " + position.coords.latitude + ", Longitude: " + position.coords.longitude);
+        console.log('Your current position is:');
+        console.log('Latitude : ' + crd.latitude);
+        console.log('Longitude: ' + crd.longitude);
+        console.log('More or less ' + crd.accuracy + ' meters.');
         $loadArtistsButton.removeClass('btn-primary').addClass('btn-success');
         $loadArtistsButton.text("Loading artists...");
 
         var currentDate = dateToYMD(new Date());
 
         $.ajax({
-            url: "http://api.songkick.com/api/3.0/events.json?apikey={yourApiKey}&location=geo%3A" + position.coords.latitude + "%2C" + position.coords.longitude + "&min_date=" + currentDate + "&max_date=" + currentDate,
+            url: "http://api.songkick.com/api/3.0/events.json?apikey=&location=geo%3A" + position.coords.latitude + "%2C" + position.coords.longitude + "&min_date=" + currentDate + "&max_date=" + currentDate,
             type: "GET",
             timeout: 30000,
             success: function (data, textStatus) {
