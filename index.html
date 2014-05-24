@@ -10,18 +10,26 @@
     <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css">
     <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap-theme.min.css">
     <link href="assets/style.css" type="text/css" />
+    <style>
+        ul {
+            list-style: none;
+            padding-left: 0;
+        }
+    </style>
 </head>
 
 <body>
 
     <div class="container" role="main">
         <div class="jumbotron">
-            <h2>Who's playing near me tonight?</h2>
+            <h2 id="page-header">Who's playing near me tonight?</h2>
             <p>
                 <a id=find-artists-button href="#" class="btn btn-primary btn-lg" role="button">
                     Find artists »
                 </a>
             </p>
+            <ul id="artist-grid">
+            </ul>
         </div>
     </div>
 

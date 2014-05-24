@@ -1,7 +1,42 @@
 jQuery(function ($) {
+    Array.prototype.contains = function (artistId) {
+        if (this !== undefined && this.length > 0) {
+            for (i in this) {
+                if (this[i].artistId === artistId) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    Array.prototype.find = function (filter) {
+        if (this !== undefined) {
+            for (var i = 0; i < this.length; i++) {
+                if (filter(this[i], i, this)) return i;
+            }
+        }
+        return -1;
+    }
+
     var $loadArtistsButton = $('#find-artists-button');
+    var $artistGrid = $('#artist-grid');
+
+    var allArtistsPlaying = [];
+    var echoNestApiKey = "TADM7C6U9DKHCUBJD";
+    var songKickApiKey = "qnqepvaYb1LXkz0T";
+    var currentDate = dateToYMD(new Date()); // TODO: move
+    var currentCoords = null;
 
     $loadArtistsButton.on('click', getLocation);
+
+    function getGuid() {
+        return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+            var r = Math.random() * 16 | 0,
+                v = c == 'x' ? r : (r & 0x3 | 0x8);
+            return v.toString(16);
+        });
+    }
 
     function getLocation() {
         $loadArtistsButton.text("Loading...");
@@ -25,27 +60,173 @@ jQuery(function ($) {
     }
 
     function showPosition(position) {
+        currentCoords = {
+            latitude: position.coords.latitude,
+            longitude: position.coords.longitude,
+            accuracy: position.coords.accuracy
+        };
+
+        // Override for Bath
+        //        currentCoords.latitude = 51.345099;
+        //        currentCoords.longitude = -2.316377;
+
         console.log('Your current position is:');
-        console.log('Latitude : ' + crd.latitude);
-        console.log('Longitude: ' + crd.longitude);
-        console.log('More or less ' + crd.accuracy + ' meters.');
+        console.log('Latitude: ' + currentCoords.latitude);
+        console.log('Longitude: ' + currentCoords.longitude);
+        console.log('More or less ' + currentCoords.accuracy + ' meters.');
         $loadArtistsButton.removeClass('btn-primary').addClass('btn-success');
         $loadArtistsButton.text("Loading artists...");
 
-        var currentDate = dateToYMD(new Date());
-
-        $.ajax({
-            url: "http://api.songkick.com/api/3.0/events.json?apikey=&location=geo%3A" + position.coords.latitude + "%2C" + position.coords.longitude + "&min_date=" + currentDate + "&max_date=" + currentDate,
-            type: "GET",
-            timeout: 30000,
-            success: function (data, textStatus) {
-                console.log(data);
-            },
-            error: function (jqXHR, textStatus, errorThrown) {
-                console.log("Error");
-                console.log(errorThrown);
-            },
+        getAreaName(currentCoords, function (area) {
+            $pageHeader = $('#page-header');
+            var text = $pageHeader.text();
+            $pageHeader.text(text.replace("near me", "in " + area.city));
         });
+
+        createTasteProfile(function (profileId) {
+            callSongKick(currentCoords, 1, profileId);
+        });
+    }
+
+    function getArtistsFromEvent(eventItem) {
+        var artists = [];
+
+        $.each(eventItem.performance, function (index, performanceItem) {
+            artists.push({
+                eventId: eventItem.id,
+                artistId: performanceItem.artist.id,
+                name: performanceItem.artist.dislayName,
+                billing: performanceItem.billing
+            });
+        });
+
+        return artists;
+    }
+
+    function addArtistsToTasteProfile(profileId, artists) {
+        var artistActions = [];
+        $.each(artists, function (index, artist) {
+            if (!allArtistsPlaying.contains(artist.id)) {
+                artistActions.push({
+                    action: "update",
+                    item: {
+                        artist_id: "songkick:artist:" + artist.artistId,
+                        item_keyvalues: {
+                            event_id: artist.eventId,
+                            billing: artist.billing,
+                            name: artist.name,
+                        }
+                    }
+                });
+            }
+        });
+
+        console.log("Adding " + artistActions.length + " artists to Taste Profile (id: " + profileId + ").");
+
+        $.post("http://developer.echonest.com/api/v4/tasteprofile/update", {
+            api_key: echoNestApiKey,
+            format: "json",
+            id: profileId,
+            data: JSON.stringify(artistActions),
+        }, function () {
+            console.log("Artists added to EchoNest Taste Profile (id: " + profileId + ").");
+            allArtistsPlaying.push(artists);
+        });
+    }
+
+    function processEventsCallback(data) {
+        var totalResults = data.resultsPage.totalEntries;
+        var currentPage = data.resultsPage.page;
+        var perPage = data.resultsPage.perPage;
+        console.log("Received response of page " + currentPage + " containing " + data.resultsPage.results.event.length);
+        console.log(data);
+
+        var items = [];
+        var artistsPlaying = [];
+
+        $.each(data.resultsPage.results.event, function (index, eventItem) {
+            items.push("<li data-event-id='" + eventItem.id + "'>" + eventItem.displayName + "</li>");
+            var extractedArtists = getArtistsFromEvent(eventItem);
+
+            artistsPlaying = artistsPlaying.concat(extractedArtists);
+        });
+
+        // Filter out duplicate artists.
+        var dedupedArtists = artistsPlaying.filter(function (artist, index, self) {
+            return self.find(function (item) {
+                return item.artistId == artist.artistId
+            }) == index;
+        });
+
+        console.log("Artists: " + artistsPlaying.length + ", Deduped artists: " + dedupedArtists.length);
+
+        addArtistsToTasteProfile(this.tasteProfileId, dedupedArtists);
+
+        $artistGrid.append(items.join(""));
+
+        if (currentPage * perPage < totalResults) {
+            currentPage++;
+            callSongKick(currentCoords, currentPage, this.tasteProfileId);
+        } else {
+            $loadArtistsButton.hide();
+        }
+    }
+
+    function getAreaInfo(addressComponents, componentName, getShortName) {
+        // Loop through 'address_components' and return item with 'type' equal to componentName.
+        var addressComponent = addressComponents.filter(function (item, index) {
+            return ($.inArray(componentName, item.types) != -1);
+        });
+
+        return getShortName ? addressComponent[0].short_name : addressComponent[0].long_name;
+    }
+
+    function getAreaName(coords, callback) {
+        // Get name of area from Google GeoCode API, based on lat, long.
+        console.log('Calling Google geocode API...');
+        $.getJSON("http://maps.googleapis.com/maps/api/geocode/json", {
+            latlng: coords.latitude + "," + coords.longitude,
+            sensor: false
+        }, function (data) {
+            var area = {
+                city: getAreaInfo(data.results[0].address_components, "postal_town", true),
+                country: getAreaInfo(data.results[0].address_components, "country", false)
+            };
+
+            console.log("Found location to be " + area.city + " in " + area.country);
+            callback(area);
+        });
+    }
+
+    function createTasteProfile(callback) {
+        var guid = getGuid();
+
+        $.post("http://developer.echonest.com/api/v4/tasteprofile/create", {
+            api_key: echoNestApiKey,
+            format: "json",
+            type: "artist",
+            name: guid,
+        })
+            .done(function (data) {
+                callback(data.response.id);
+            });
+    }
+
+    function callSongKick(coords, page, tasteProfileId) {
+        $.ajax({
+            url: "http://api.songkick.com/api/3.0/events.json",
+            data: {
+                apikey: songKickApiKey,
+                location: "geo:" + coords.latitude + "," + coords.longitude,
+                min_date: currentDate,
+                max_date: currentDate,
+                page: page,
+            },
+            tasteProfileId: tasteProfileId
+        })
+            .done(processEventsCallback);
+
+        console.log("Calling SongKick API for page " + page + "...");
     }
 
     function showError(error) {
