@@ -43,12 +43,40 @@
             <ul id="artist-grid">
             </ul>
         </div>
+
     </div>
 
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
     <script src="//cdnjs.cloudflare.com/ajax/libs/underscore.js/1.6.0/underscore-min.js"></script>
     <script src="//netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js"></script>
-    <script src="assets/script.js"></script>
+    <script src="assets/SpotifyLive.Location.js"></script>
+    <script src="assets/SpotifyLive.SongKick.js"></script>
+    <script src="assets/SpotifyLive.Util.js"></script>
+
+    <script>
+        jQuery(function ($) {
+            $(document).on('coordinates-found', function (data, coordinates) {
+                SpotifyLive.Location.getCurrentCityAndCountryFromCoordinates(coordinates);
+                SpotifyLive.SongKick.getAllEventsForToday(coordinates);
+            });
+
+            $(document).on('all-local-events-found', function (data, localEvents) {
+                var normalisedArtists = SpotifyLive.Util.convertSongKickEventsToTasteProfileArtists(localEvents.events);
+
+                console.log(normalisedArtists);
+            });
+
+            $(document).on('area-found', function (data, area) {
+                $pageHeader = $('#page-header');
+                var text = $pageHeader.text();
+                $pageHeader.text(text.replace("near me", "in " + area.city));
+            });
+
+
+            $('#find-artists-button').on('click', SpotifyLive.Location.getCurrentCoordinates);
+
+        });
+    </script>
 </body>
 
 </html>
