@@ -9,12 +9,12 @@ var SpotifyLive = (function (parent, $) {
             this.eventIds = eventIds;
         }
 
-        this.artist_id = "songkick:" + artistId;
-        this.item_keyvalues = new ArtistMetaData(artistName, [eventId]);
-
         this.addEventId = function (eventId) {
             this.item_keyvalues.eventIds.push(eventId.toString());
         };
+
+        this.artist_id = "songkick:" + artistId;
+        this.item_keyvalues = new ArtistMetaData(artistName, [eventId.toString()]);
     }
 
     self.convertSongKickEventsToTasteProfileArtists = function (songKickEvents) {
@@ -22,29 +22,26 @@ var SpotifyLive = (function (parent, $) {
 
         var artists = [];
 
-        // iterate each event
-        // pull out artists
-        // iterate each artist
-        // if artist doesn't exist, add meta data and push to the pile
-        // else if add additional metadata to existing artist
         $.each(songKickEvents, function (index, event) {
             $.each(event.performance, function (index, performance) {
                 // Check if any of the artists are already in the list.
                 var existingArtist = _.where(artists, {
-                    artist_id: performance.artist.id
+                    artist_id: "songkick:" + performance.artist.id
                 });
 
                 if (existingArtist.length == 0) {
+                    // Push new artist to results array.
                     artists.push(new Artist(performance.artist.id,
                         performance.artist.displayName, event.id));
                 } else {
-                    console.log("Duplicate artist found - " + performance.artist.displayName);
+                    // Artist's playing at more than one event that day, so add the additional event id.
+                    console.log("Duplicate found - " + performance.artist.displayName);
                     existingArtist[0].addEventId(event.id);
                 }
             });
         });
 
-        console.log(JSON.stringify(artists));
+        console.log(artists.length + " artists found.");
 
         return artists;
     };

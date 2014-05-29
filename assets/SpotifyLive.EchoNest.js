@@ -2,36 +2,54 @@ var SpotifyLive = (function (parent, $) {
     "use strict";
     var self = parent.EchoNest = parent.EchoNest || {};
 
-    self.convertSongKickEventsToTasteProfileArtists = function (songKickEvents) {
-        console.log("Converting " + songKickEvents.length + " SongKick events to EchoNest TasteProfile artists...");
+    var echoNestApiKey = "TADM7C6U9DKHCUBJD";
+    var tasteProfileId = "";
 
-        var artists = [];
+    function isEmpty(str) {
+        return (!str || 0 === str.length);
+    }
 
-        // iterate each event
-        // pull out artists
-        // iterate each artist
-        // if artist doesn't exist, add meta data and push to the pile
-        // else if add additional metadata to existing artist
-        $.each(songKickEvents, function (index, event) {
-            $.each(event.performance, function (index, performance) {
-                // Check if any of the artists are already in the list.
-                var existingArtist = _.where(artists, {
-                    artist_id: performance.artist.id
+    var getTasteProfile = function (successCallback) {
+
+        if (isEmpty(tasteProfileId)) {
+            $.post("http://developer.echonest.com/api/v4/tasteprofile/create", {
+                api_key: echoNestApiKey,
+                format: "json",
+                type: "artist",
+                name: new Date().getTime(),
+            }, function (data) {
+                typeof successCallback === 'function' && successCallback(data.response.id);
+            });
+        } else {
+            typeof successCallback === 'function' && successCallback(tasteProfileId);
+        }
+    };
+
+    self.uploadArtistsToTasteProfile = function (artists, successCallback) {
+        getTasteProfile(function (tasteProfileId) {
+            var artistActions = [];
+
+            $.each(artists, function (index, artist) {
+                artistActions.push({
+                    action: "update",
+                    item: artist
                 });
+            });
 
-                if (existingArtist.length == 0) {
-                    artists.push(new Artist(performance.artist.id,
-                        performance.artist.displayName, event.id));
-                } else {
-                    console.log("Duplicate artist found - " + performance.artist.displayName);
-                    existingArtist[0].addEventId(event.id);
-                }
+            console.log("Adding " + artistActions.length + " artists to Taste Profile (id: " + tasteProfileId + ").");
+            console.log(JSON.stringify(artistActions));
+
+            $.post("http://developer.echonest.com/api/v4/tasteprofile/update", {
+                api_key: echoNestApiKey,
+                format: "json",
+                id: tasteProfileId,
+                data: JSON.stringify(artistActions),
+            }, function () {
+                typeof successCallback === 'function' && successCallback(tasteProfileId);
+                $(document).trigger('taste-profile-completed', tasteProfileId);
+                console.log("Artists added to EchoNest Taste Profile (id: " + tasteProfileId + ").");
             });
         });
-
-        console.log(JSON.stringify(artists));
-
-        return artists;
     };
 
     return parent;

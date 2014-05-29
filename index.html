@@ -50,7 +50,8 @@
     <script src="//cdnjs.cloudflare.com/ajax/libs/underscore.js/1.6.0/underscore-min.js"></script>
     <script src="//netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js"></script>
     <script src="assets/SpotifyLive.Location.js"></script>
-    <script src="assets/SpotifyLive.SongKick.js"></script>
+    <script src="assets/SpotifyLive.SongKick.js"></script>>
+    <script src="assets/SpotifyLive.EchoNest.js"></script>
     <script src="assets/SpotifyLive.Util.js"></script>
 
     <script>
@@ -63,7 +64,7 @@
             $(document).on('all-local-events-found', function (data, localEvents) {
                 var normalisedArtists = SpotifyLive.Util.convertSongKickEventsToTasteProfileArtists(localEvents.events);
 
-                console.log(normalisedArtists);
+                SpotifyLive.EchoNest.uploadArtistsToTasteProfile(normalisedArtists);
             });
 
             $(document).on('area-found', function (data, area) {
@@ -72,9 +73,7 @@
                 $pageHeader.text(text.replace("near me", "in " + area.city));
             });
 
-
             $('#find-artists-button').on('click', SpotifyLive.Location.getCurrentCoordinates);
-
         });
     </script>
 </body>
