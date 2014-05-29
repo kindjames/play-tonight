@@ -21,6 +21,7 @@ jQuery(function ($) {
 
     var $loadArtistsButton = $('#find-artists-button');
     var $artistGrid = $('#artist-grid');
+    var $termGrid = $('#term-grid');
 
     var allArtistsPlaying = [];
     var echoNestApiKey = "TADM7C6U9DKHCUBJD";
@@ -95,12 +96,51 @@ jQuery(function ($) {
             artists.push({
                 eventId: eventItem.id,
                 artistId: performanceItem.artist.id,
-                name: performanceItem.artist.dislayName,
+                name: performanceItem.artist.displayName,
                 billing: performanceItem.billing
             });
         });
 
         return artists;
+    }
+
+    function loadTopTermsFromArtists(tasteProfileId, callback) {
+
+        _(function () {
+            var dataParams = {
+                api_key: echoNestApiKey,
+                id: tasteProfileId,
+                results: 10,
+                start: 0
+            };
+
+            $.getJSON("http://developer.echonest.com/api/v4/tasteprofile/read?bucket=genre&bucket=id:spotify-WW", $.param(dataParams, true))
+                .done(function (data) {
+                    console.log("Received Taste Pofile (id: " + tasteProfileId + ")...");
+                    console.log(data);
+                    debugger;
+                });
+        }).delay(1000);
+    }
+
+    function loadTopTerms(count, callback) {
+
+        $.getJSON("http://developer.echonest.com/api/v4/artist/top_terms", {
+            api_key: echoNestApiKey,
+            results: count,
+        })
+            .done(function (data) {
+                console.log("Got top terms...");
+                console.log(data);
+                // Push genres to markup.
+                var terms = [];
+                $.each(data.response.terms, function (index, genre) {
+                    terms.push("<li data-event-id='" + genre.name + "'>" + genre.name + "</li>");
+                });
+                $termGrid.append(terms.join(""));
+
+                callback();
+            });
     }
 
     function addArtistsToTasteProfile(profileId, artists) {
@@ -122,16 +162,18 @@ jQuery(function ($) {
         });
 
         console.log("Adding " + artistActions.length + " artists to Taste Profile (id: " + profileId + ").");
+        console.log(JSON.stringify(artistActions));
 
         $.post("http://developer.echonest.com/api/v4/tasteprofile/update", {
             api_key: echoNestApiKey,
             format: "json",
             id: profileId,
             data: JSON.stringify(artistActions),
-        }, function () {
-            console.log("Artists added to EchoNest Taste Profile (id: " + profileId + ").");
-            allArtistsPlaying.push(artists);
-        });
+        })
+            .done(function () {
+                console.log("Artists added to EchoNest Taste Profile (id: " + profileId + ").");
+                allArtistsPlaying.push(artists);
+            });
     }
 
     function processEventsCallback(data) {
@@ -169,6 +211,10 @@ jQuery(function ($) {
             callSongKick(currentCoords, currentPage, this.tasteProfileId);
         } else {
             $loadArtistsButton.hide();
+
+            loadTopTermsFromArtists(this.tasteProfileId);
+            //loadTopTerms(100);
+            // gt recognised 
         }
     }
 
@@ -187,15 +233,16 @@ jQuery(function ($) {
         $.getJSON("http://maps.googleapis.com/maps/api/geocode/json", {
             latlng: coords.latitude + "," + coords.longitude,
             sensor: false
-        }, function (data) {
-            var area = {
-                city: getAreaInfo(data.results[0].address_components, "postal_town", true),
-                country: getAreaInfo(data.results[0].address_components, "country", false)
-            };
+        })
+            .done(function (data) {
+                var area = {
+                    city: getAreaInfo(data.results[0].address_components, "postal_town", true),
+                    country: getAreaInfo(data.results[0].address_components, "country", false)
+                };
 
-            console.log("Found location to be " + area.city + " in " + area.country);
-            callback(area);
-        });
+                console.log("Found location to be " + area.city + " in " + area.country);
+                callback(area);
+            });
     }
 
     function createTasteProfile(callback) {

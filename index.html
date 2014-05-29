@@ -15,6 +15,12 @@
             list-style: none;
             padding-left: 0;
         }
+        li {
+            float: left;
+            width: 100px;
+            height: 100px;
+            display: block;
+        }
     </style>
 </head>
 
@@ -28,12 +34,19 @@
                     Find artists »
                 </a>
             </p>
+            <section>
+                <h3>What's your mood?</h3>
+                <ul id="term-grid">
+                </ul>
+            </section>
+
             <ul id="artist-grid">
             </ul>
         </div>
     </div>
 
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/underscore.js/1.6.0/underscore-min.js"></script>
     <script src="//netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js"></script>
     <script src="assets/script.js"></script>
 </body>
