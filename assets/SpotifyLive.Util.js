@@ -13,12 +13,12 @@ var SpotifyLive = (function (parent, $) {
             this.item_keyvalues.eventIds.push(eventId.toString());
         };
 
-        this.artist_id = "songkick:" + artistId;
+        this.artist_id = artistId;
         this.item_keyvalues = new ArtistMetaData(artistName, [eventId.toString()]);
     }
 
     self.convertSongKickEventsToTasteProfileArtists = function (songKickEvents) {
-        console.log("Converting " + songKickEvents.length + " SongKick events to EchoNest TasteProfile artists...");
+        console.log("Converting " + songKickEvents.length + " SongKick events to EchoNest Taste Profile artists...");
 
         var artists = [];
 
@@ -26,7 +26,7 @@ var SpotifyLive = (function (parent, $) {
             $.each(event.performance, function (index, performance) {
                 // Check if any of the artists are already in the list.
                 var existingArtist = _.where(artists, {
-                    artist_id: "songkick:" + performance.artist.id
+                    artist_id: performance.artist.id
                 });
 
                 if (existingArtist.length == 0) {
@@ -41,9 +41,19 @@ var SpotifyLive = (function (parent, $) {
             });
         });
 
-        console.log(artists.length + " artists found.");
-
         return artists;
+    };
+
+    self.extractWorkableArtists = function (tasteProfile) {
+        var workableArtists = [];
+
+        var filteredProfile = _.filter(tasteProfile, function (artist) {
+            return _.has(artist, 'foreign_ids') && _.has(artist, 'genres');
+        });
+
+        console.log("From " + tasteProfile.length + " to " + filteredProfile.length);
+
+        return workableArtists;
     };
 
     return parent;

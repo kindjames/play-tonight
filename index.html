@@ -56,21 +56,27 @@
 
     <script>
         jQuery(function ($) {
-            $(document).on('coordinates-found', function (data, coordinates) {
+            $(document).on('coordinates-found', function (event, coordinates) {
                 SpotifyLive.Location.getCurrentCityAndCountryFromCoordinates(coordinates);
                 SpotifyLive.SongKick.getAllEventsForToday(coordinates);
             });
 
-            $(document).on('all-local-events-found', function (data, localEvents) {
+            $(document).on('all-local-events-found', function (event, localEvents) {
                 var normalisedArtists = SpotifyLive.Util.convertSongKickEventsToTasteProfileArtists(localEvents.events);
 
                 SpotifyLive.EchoNest.uploadArtistsToTasteProfile(normalisedArtists);
             });
 
-            $(document).on('area-found', function (data, area) {
+            $(document).on('area-found', function (event, area) {
                 $pageHeader = $('#page-header');
                 var text = $pageHeader.text();
                 $pageHeader.text(text.replace("near me", "in " + area.city));
+            });
+
+            $(document).on('taste-profile-completed', function (event, tasteProfileId) {
+                SpotifyLive.EchoNest.getTasteProfile(tasteProfileId, function (tasteProfile) {
+                    var filteredArtists = SpotifyLive.Util.extractWorkableArtists(tasteProfile.artists);
+                });
             });
 
             $('#find-artists-button').on('click', SpotifyLive.Location.getCurrentCoordinates);
