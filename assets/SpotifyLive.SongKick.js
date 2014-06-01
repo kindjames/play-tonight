@@ -23,20 +23,24 @@ var SpotifyLive = (function (parent, $) {
             var currentPage = data.resultsPage.page;
             var perPage = data.resultsPage.perPage;
 
-            console.log("Received response of page " + currentPage + " containing " + data.resultsPage.results.event.length + " events.");
-
-            eventItems = eventItems.concat(data.resultsPage.results.event);
-
-            if (currentPage * perPage < totalResults) {
-                // Fetch the next page.
-                callSongKick(this.nextPage, this.coordinates, this.date, this.apiKey)
+            if (totalResults == 0) {
+                console.log("No events happening in your area tonight :(");
             } else {
-                // Loop finished.
-                var callbackData = {
-                    events: eventItems
-                };
-                typeof successCallback === 'function' && successCallback(callbackData);
-                $(document).trigger('all-local-events-found', callbackData);
+                console.log("Received response of page " + currentPage + " containing " + data.resultsPage.results.event.length + " events.");
+
+                eventItems = eventItems.concat(data.resultsPage.results.event);
+
+                if (currentPage * perPage < totalResults) {
+                    // Fetch the next page.
+                    callSongKick(this.nextPage, this.coordinates, this.date, this.apiKey)
+                } else {
+                    // Loop finished.
+                    var callbackData = {
+                        events: eventItems
+                    };
+                    typeof successCallback === 'function' && successCallback(callbackData);
+                    $(document).trigger('all-local-events-found', callbackData);
+                }
             }
         };
 

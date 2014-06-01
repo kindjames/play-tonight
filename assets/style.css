@@ -1,3 +1,6 @@
 ul li {
     list-style: none
 }
+ul#genre-grid li {
+    background-color: #ccc;
+}

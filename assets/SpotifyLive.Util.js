@@ -45,15 +45,33 @@ var SpotifyLive = (function (parent, $) {
     };
 
     self.extractWorkableArtists = function (tasteProfile) {
-        var workableArtists = [];
 
         var filteredProfile = _.filter(tasteProfile, function (artist) {
-            return _.has(artist, 'foreign_ids') && _.has(artist, 'genres');
+            return _.has(artist, 'foreign_ids') && _.has(artist, 'genres') && artist.genres.length > 0;
         });
 
-        console.log("From " + tasteProfile.length + " to " + filteredProfile.length);
+        console.log("Extracted " + filteredProfile.length + " 'usuable' artists from " + tasteProfile.length + ".");
 
-        return workableArtists;
+        return filteredProfile;
+    };
+
+    self.extractArtistsBasedOnGenres = function (artists, genres) {
+        return _.filter(artists, function (artist) {
+            return _.some(artist.genres, function (genre) {
+                return _.contains(genres, genre.name);
+            })
+        });
+    };
+
+    self.getMostPopularGenresFromArtistCollection = function (artists, amount) {
+        return _.chain(artists)
+            .pluck('genres')
+            .flatten()
+            .countBy('name')
+            .pairs()
+            .sortBy(_.last)
+            .last(amount)
+            .value();
     };
 
     return parent;

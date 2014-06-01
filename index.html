@@ -17,9 +17,35 @@
         }
         li {
             float: left;
-            width: 100px;
-            height: 100px;
+            width: 130px;
+            height: 130px;
             display: block;
+            background-color: #ccc;
+            margin: 0 20px 20px 0;
+            position: relative;
+            display: table;
+            padding: 10px;
+            cursor: pointer;
+        }
+        ul li span {
+            font-weight: bold;
+            color: #ddd;
+            text-transform: uppercase;
+            margin: 0 auto;
+            display: table-cell;
+            vertical-align: middle;
+            text-align: center;
+            transform: rotate(-45deg);
+            -webkit-transform: rotate(-45deg);
+            -ms-transform: rotate(-45deg);
+            -webkit-writing-mode: horizontal-tb;
+        }
+        li.selected-genre span {
+            font-weight: bold;
+            color: #fff;
+        }
+        section#spotify-player {
+            clear: left;
         }
     </style>
 </head>
@@ -34,14 +60,15 @@
                     Find artists »
                 </a>
             </p>
-            <section>
-                <h3>What's your mood?</h3>
-                <ul id="term-grid">
-                </ul>
+
+            <section id=genre-section style="display:none">
+                <h3>What are you in to?</h3>
+                <ul id="genre-grid" />
             </section>
 
-            <ul id="artist-grid">
-            </ul>
+            <section id=spotify-player role="grid">
+
+            </section>
         </div>
 
     </div>
@@ -49,10 +76,12 @@
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
     <script src="//cdnjs.cloudflare.com/ajax/libs/underscore.js/1.6.0/underscore-min.js"></script>
     <script src="//netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js"></script>
+    <script src="http://twitter.github.io/typeahead.js/releases/latest/typeahead.bundle.js"></script>
     <script src="assets/SpotifyLive.Location.js"></script>
-    <script src="assets/SpotifyLive.SongKick.js"></script>>
+    <script src="assets/SpotifyLive.SongKick.js"></script>
     <script src="assets/SpotifyLive.EchoNest.js"></script>
     <script src="assets/SpotifyLive.Util.js"></script>
+    <script src="assets/SpotifyLive.View.js"></script>
 
     <script>
         jQuery(function ($) {
@@ -74,8 +103,33 @@
             });
 
             $(document).on('taste-profile-completed', function (event, tasteProfileId) {
-                SpotifyLive.EchoNest.getTasteProfile(tasteProfileId, function (tasteProfile) {
-                    var filteredArtists = SpotifyLive.Util.extractWorkableArtists(tasteProfile.artists);
+
+                SpotifyLive.EchoNest.getTasteProfile(tasteProfileId, function (artists) {
+
+                    var usableArtists = SpotifyLive.Util.extractWorkableArtists(artists);
+
+                    var topGenres = SpotifyLive.Util.getMostPopularGenresFromArtistCollection(usableArtists, 10);
+
+                    SpotifyLive.View.displayGenres('#genre-grid', topGenres);
+                    $('#genre-section').fadeIn();
+
+                    $(document).on('genres-changed', function (event, data) {
+
+                        if (data.genres.length > 0) {
+                            var artistsFilteredBySelectedGenres = SpotifyLive.Util.extractArtistsBasedOnGenres(artists, data.genres);
+
+                            SpotifyLive.EchoNest.getPopularSongsForArtists(artistsFilteredBySelectedGenres, function (songIds) {
+
+                                SpotifyLive.Location.getCurrentCityAndCountry(function (area) {
+                                    var title = 'Playing tonight in ' + area.city;
+                                    SpotifyLive.View.displaySpotifyTrackset('#spotify-player', songIds, title);
+                                });
+                            });
+                        } else {
+                            SpotifyLive.View.removeSpotifyTrackset('#spotify-player');
+                        }
+                    });
+
                 });
             });
 

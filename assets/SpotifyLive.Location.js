@@ -1,6 +1,8 @@
 var SpotifyLive = (function (parent, $) {
     "use strict";
     var self = parent.Location = parent.Location || {};
+    var area = null;
+    var coordinates = null;
 
     function Coordinates(longitude, latitude, accuracy) {
         this.longitude = longitude;
@@ -23,47 +25,65 @@ var SpotifyLive = (function (parent, $) {
     }
 
     self.getCurrentCoordinates = function (successCallback, errorCallback) {
-        console.log("Attempting to obtain coordinates...");
-        var opts = {
-            enableHighAccuracy: true,
-            timeout: 5000,
-            maximumAge: 0
-        };
-        var success = function (position) {
-            var coords = new Coordinates(
-                position.coords.longitude,
-                position.coords.latitude,
-                position.coords.accuracy);
-
-            console.log(coords);
-
+        if (!!coordinates) {
             typeof successCallback === 'function' && successCallback(coords);
-            $(document).trigger('coordinates-found', coords);
-        };
-        if (navigator.geolocation) {
-            navigator.geolocation.getCurrentPosition(success, errorCallback, opts);
         } else {
-            typeof successCallback === 'function' && errorCallback();
+            console.log("Attempting to obtain coordinates...");
+            var opts = {
+                enableHighAccuracy: true,
+                timeout: 5000,
+                maximumAge: 0
+            };
+            var success = function (position) {
+                var coords = new Coordinates(
+                    position.coords.longitude,
+                    position.coords.latitude,
+                    position.coords.accuracy);
+
+                console.log(coords);
+
+                typeof successCallback === 'function' && successCallback(coords);
+                $(document).trigger('coordinates-found', coords);
+            };
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(success, errorCallback, opts);
+            } else {
+                typeof successCallback === 'function' && errorCallback();
+            }
         }
     };
 
     self.getCurrentCityAndCountryFromCoordinates = function (coordinates, successCallback) {
-        console.log("Calling Google Geo Code API... (Lat:" + coordinates.latitude + ", Long:" + coordinates.longitude + ")");
-        $.getJSON("http://maps.googleapis.com/maps/api/geocode/json", {
-                latlng: coordinates.latitude + "," + coordinates.longitude,
-                sensor: false
-            },
-            function (data) {
-                var area = new Area(
-                    getAreaInfo(data.results[0].address_components, "postal_town", true),
-                    getAreaInfo(data.results[0].address_components, "country", false)
-                );
 
-                console.log("Found area to be " + area.city + " in " + area.country);
-                $(document).trigger('area-found', area);
-                typeof successCallback === 'function' && successCallback(area);
-            });
+        if (!!area) {
+            typeof successCallback === 'function' && successCallback(area);
+        } else {
+            console.log("Calling Google Geo Code API... (Lat:" + coordinates.latitude + ", Long:" + coordinates.longitude + ")");
+            $.getJSON("http://maps.googleapis.com/maps/api/geocode/json", {
+                    latlng: coordinates.latitude + "," + coordinates.longitude,
+                    sensor: false
+                },
+                function (data) {
+                    area = new Area(
+                        getAreaInfo(data.results[0].address_components, "postal_town", true),
+                        getAreaInfo(data.results[0].address_components, "country", false)
+                    );
+
+                    console.log("Found area to be " + area.city + " in " + area.country);
+                    $(document).trigger('area-found', area);
+                    typeof successCallback === 'function' && successCallback(area);
+                });
+        }
     };
 
+    self.getCurrentCityAndCountry = function (successCallback) {
+        if (!!area) {
+            typeof successCallback === 'function' && successCallback(area);
+        } else {
+            self.getCurrentCoordinates(function (coordinates) {
+                self.getCurrentCityAndCountryFromCoordinates(coordinates, successCallback)
+            });
+        }
+    };
     return parent;
 }(SpotifyLive || {}, jQuery));

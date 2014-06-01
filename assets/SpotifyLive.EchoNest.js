@@ -4,30 +4,45 @@ var SpotifyLive = (function (parent, $) {
 
     var echoNestApiKey = "TADM7C6U9DKHCUBJD";
     var tasteProfileId = "";
-    var echoNestProfileUploadCallbackDelay = 1000;
+    var echoNestProfileUploadCallbackDelay = 750;
 
     function isEmpty(str) {
         return (!str || 0 === str.length);
     }
 
-    var getTasteProfile = function (successCallback) {
+    var createTasteProfileId = function (successCallback) {
+        $.post("http://developer.echonest.com/api/v4/tasteprofile/create", {
+            api_key: echoNestApiKey,
+            format: "json",
+            type: "artist",
+            name: new Date().getTime(),
+        }, function (data) {
+            typeof successCallback === 'function' && successCallback(data.response.id);
+        });
+    };
 
+    var getSongIds = function (songs) {
+        var songIds = [];
+
+        $.each(songs, function (index, song) {
+            if (song.tracks && song.tracks.length > 0) {
+                songIds.push(song.tracks[0].foreign_id);
+            }
+        });
+
+        return songIds;
+    };
+
+    self.getTasteProfileId = function (successCallback) {
         if (isEmpty(tasteProfileId)) {
-            $.post("http://developer.echonest.com/api/v4/tasteprofile/create", {
-                api_key: echoNestApiKey,
-                format: "json",
-                type: "artist",
-                name: new Date().getTime(),
-            }, function (data) {
-                typeof successCallback === 'function' && successCallback(data.response.id);
-            });
+            createTasteProfileId(successCallback);
         } else {
             typeof successCallback === 'function' && successCallback(tasteProfileId);
         }
     };
 
     self.uploadArtistsToTasteProfile = function (artists, successCallback) {
-        getTasteProfile(function (tasteProfileId) {
+        self.getTasteProfileId(function (tasteProfileId) {
             var artistActions = [];
 
             $.each(artists, function (index, artist) {
@@ -47,7 +62,7 @@ var SpotifyLive = (function (parent, $) {
                 data: JSON.stringify(artistActions),
             }, function () {
 
-                // Artificial delay of 1 sec to give EchoNest a chance to get their ducks in a row.
+                // Artificial delay to give EchoNest a chance to get their ducks in a row.
                 setTimeout(function () {
 
                     typeof successCallback === 'function' && successCallback(tasteProfileId);
@@ -76,9 +91,7 @@ var SpotifyLive = (function (parent, $) {
 
             if (artistCount < this.resultsPerPage) {
                 // Loop finished.
-                typeof successCallback === 'function' && successCallback({
-                    artists: artistItems
-                });
+                typeof successCallback === 'function' && successCallback(artistItems);
             } else {
                 // Fetch the next page.
                 getTasteProfileDataPage((this.index + artistCount), this.apiKey, this.tasteProfileId, this.resultsPerPage);
@@ -86,15 +99,13 @@ var SpotifyLive = (function (parent, $) {
         };
 
         var getTasteProfileDataPage = function (index, apiKey, tasteProfileId, resultsPerPage) {
-
             console.log(" -> index " + index + "...");
-
             $.ajax({
                 url: "http://developer.echonest.com/api/v4/tasteprofile/read",
                 data: {
                     api_key: apiKey,
                     id: tasteProfileId,
-                    bucket: ["genre", "id:spotify-WW"],
+                    bucket: ["genre", "id:spotify-WW", "hotttnesss"],
                     results: resultsPerPage,
                     start: index
                 },
@@ -109,6 +120,37 @@ var SpotifyLive = (function (parent, $) {
 
         getTasteProfileDataPage(0, echoNestApiKey, tasteProfileId, 100);
     }
+
+    self.getPopularSongsForArtists = function (artists, successCallback) {
+
+        var allSongIds = [];
+        $.each(artists, function (index, artist) {
+            console.log("Getting most popular songs for " + artist.artist_name + "...");
+            $.ajax({
+                url: "http://developer.echonest.com/api/v4/song/search",
+                data: {
+                    api_key: echoNestApiKey,
+                    bucket: ["tracks", "id:spotify-WW", "song_hotttnesss"],
+                    artist_id: artist.foreign_ids[0].foreign_id,
+                    sort: "song_hotttnesss-desc",
+                    limit: true,
+                    results: 3,
+                },
+                traditional: true
+            })
+                .done(function (data) {
+                    var songIds = getSongIds(data.response.songs);
+
+                    console.log("Received " + songIds.length + " song id's for " + artist.artist_name);
+
+                    allSongIds.push(songIds);
+
+                    if ((index + 1) == artists.length) {
+                        typeof successCallback === 'function' && successCallback(_.flatten(allSongIds));
+                    }
+                });
+        });
+    };
 
     return parent;
 }(SpotifyLive || {}, jQuery));
