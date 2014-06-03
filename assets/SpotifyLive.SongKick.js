@@ -2,16 +2,9 @@ var SpotifyLive = (function (parent, $) {
     "use strict";
     var self = parent.SongKick = parent.SongKick || {};
 
-    var dateToYMD = function (date) {
-        var d = date.getDate();
-        var m = date.getMonth() + 1;
-        var y = date.getFullYear();
-        return '' + y + '-' + (m <= 9 ? '0' + m : m) + '-' + (d <= 9 ? '0' + d : d);
-    }
-
     var songKickApiKey = "qnqepvaYb1LXkz0T";
 
-    self.getAllEventsForToday = function (coordinates, successCallback) {
+    self.getAllEventsForDate = function (date, coordinates, successCallback) {
         console.log("Contacting SongKick API for artists playing locally tonight...");
 
         var eventItems = [];
@@ -24,6 +17,10 @@ var SpotifyLive = (function (parent, $) {
             var perPage = data.resultsPage.perPage;
 
             if (totalResults == 0) {
+                $(document).trigger('no-local-events-found', {
+                    date: date,
+                    coordinates: coordinates
+                });
                 console.log("No events happening in your area tonight :(");
             } else {
                 console.log("Received response of page " + currentPage + " containing " + data.resultsPage.results.event.length + " events.");
@@ -54,8 +51,8 @@ var SpotifyLive = (function (parent, $) {
                 data: {
                     apikey: apiKey,
                     location: "geo:" + coordinates.latitude + "," + coordinates.longitude,
-                    min_date: date,
-                    max_date: date,
+                    min_date: SpotifyLive.Util.dateToYMD(date),
+                    max_date: SpotifyLive.Util.dateToYMD(date),
                     page: page,
                 },
                 nextPage: (page + 1),
@@ -66,7 +63,7 @@ var SpotifyLive = (function (parent, $) {
         }
 
         // Initial call to start the loop through data pages.
-        callSongKick(1, coordinates, dateToYMD(new Date()), songKickApiKey);
+        callSongKick(1, coordinates, date, songKickApiKey);
     };
 
     return parent;

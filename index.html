@@ -9,132 +9,53 @@
 
     <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css">
     <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap-theme.min.css">
-    <link href="assets/style.css" type="text/css" />
-    <style>
-        ul {
-            list-style: none;
-            padding-left: 0;
-        }
-        li {
-            float: left;
-            width: 130px;
-            height: 130px;
-            display: block;
-            background-color: #ccc;
-            margin: 0 20px 20px 0;
-            position: relative;
-            display: table;
-            padding: 10px;
-            cursor: pointer;
-        }
-        ul li span {
-            font-weight: bold;
-            color: #ddd;
-            text-transform: uppercase;
-            margin: 0 auto;
-            display: table-cell;
-            vertical-align: middle;
-            text-align: center;
-            transform: rotate(-45deg);
-            -webkit-transform: rotate(-45deg);
-            -ms-transform: rotate(-45deg);
-            -webkit-writing-mode: horizontal-tb;
-        }
-        li.selected-genre span {
-            font-weight: bold;
-            color: #fff;
-        }
-        section#spotify-player {
-            clear: left;
-        }
-    </style>
+    <link rel=stylesheet href="assets/style.css">
 </head>
 
 <body>
 
-    <div class="container" role="main">
-        <div class="jumbotron">
-            <h2 id="page-header">Who's playing near me tonight?</h2>
-            <p>
-                <a id=find-artists-button href="#" class="btn btn-primary btn-lg" role="button">
-                    Find artists »
-                </a>
-            </p>
-
-            <section id=genre-section style="display:none">
-                <h3>What are you in to?</h3>
-                <ul id="genre-grid" />
-            </section>
-
-            <section id=spotify-player role="grid">
-
-            </section>
+    <section id=container class=container role=main>
+        <div id=screens-container class=jumbotron style="display:none">
+            <div id=landing-screen style="display:none">
+                <h1>Who's playing near me tonight?</h1>
+                <button id=find-artists-button class="btn btn-lg btn-success">Find out »</button>
+            </div>
+            <div id=term-screen style="display:none">
+                <h1>What are you into?</h1>
+                <ul id=term-grid class=clearfix></ul>
+                <button id=make-playlist-button class="btn btn-lg btn-success">Make playlist »</button>
+            </div>
+            <div id=player-screen style="display:none">
+                <h1>Tonight's $placename playlist</h1>
+                <div id=spotify-player></div>
+            </div>
         </div>
-
-    </div>
+        <div id=notification-modal class=jumbotron role=alertdialog style="display:none">
+            <div id=loader-container>
+                <ul id=bar-loader>
+                    <li></li>
+                    <li></li>
+                    <li></li>
+                    <li></li>
+                    <li></li>
+                </ul>
+                <p id=notification-label></p>
+            </div>
+        </div>
+    </section>
 
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
     <script src="//cdnjs.cloudflare.com/ajax/libs/underscore.js/1.6.0/underscore-min.js"></script>
     <script src="//netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js"></script>
-    <script src="http://twitter.github.io/typeahead.js/releases/latest/typeahead.bundle.js"></script>
     <script src="assets/SpotifyLive.Location.js"></script>
     <script src="assets/SpotifyLive.SongKick.js"></script>
     <script src="assets/SpotifyLive.EchoNest.js"></script>
     <script src="assets/SpotifyLive.Util.js"></script>
     <script src="assets/SpotifyLive.View.js"></script>
-
     <script>
-        jQuery(function ($) {
-            $(document).on('coordinates-found', function (event, coordinates) {
-                SpotifyLive.Location.getCurrentCityAndCountryFromCoordinates(coordinates);
-                SpotifyLive.SongKick.getAllEventsForToday(coordinates);
-            });
-
-            $(document).on('all-local-events-found', function (event, localEvents) {
-                var normalisedArtists = SpotifyLive.Util.convertSongKickEventsToTasteProfileArtists(localEvents.events);
-
-                SpotifyLive.EchoNest.uploadArtistsToTasteProfile(normalisedArtists);
-            });
-
-            $(document).on('area-found', function (event, area) {
-                $pageHeader = $('#page-header');
-                var text = $pageHeader.text();
-                $pageHeader.text(text.replace("near me", "in " + area.city));
-            });
-
-            $(document).on('taste-profile-completed', function (event, tasteProfileId) {
-
-                SpotifyLive.EchoNest.getTasteProfile(tasteProfileId, function (artists) {
-
-                    var usableArtists = SpotifyLive.Util.extractWorkableArtists(artists);
-
-                    var topGenres = SpotifyLive.Util.getMostPopularGenresFromArtistCollection(usableArtists, 10);
-
-                    SpotifyLive.View.displayGenres('#genre-grid', topGenres);
-                    $('#genre-section').fadeIn();
-
-                    $(document).on('genres-changed', function (event, data) {
-
-                        if (data.genres.length > 0) {
-                            var artistsFilteredBySelectedGenres = SpotifyLive.Util.extractArtistsBasedOnGenres(artists, data.genres);
-
-                            SpotifyLive.EchoNest.getPopularSongsForArtists(artistsFilteredBySelectedGenres, function (songIds) {
-
-                                SpotifyLive.Location.getCurrentCityAndCountry(function (area) {
-                                    var title = 'Playing tonight in ' + area.city;
-                                    SpotifyLive.View.displaySpotifyTrackset('#spotify-player', songIds, title);
-                                });
-                            });
-                        } else {
-                            SpotifyLive.View.removeSpotifyTrackset('#spotify-player');
-                        }
-                    });
-
-                });
-            });
-
-            $('#find-artists-button').on('click', SpotifyLive.Location.getCurrentCoordinates);
-        });
+        (function () {
+            SpotifyLive.View.Actions.init();
+        })();
     </script>
 </body>
 

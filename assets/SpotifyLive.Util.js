@@ -17,13 +17,20 @@ var SpotifyLive = (function (parent, $) {
         this.item_keyvalues = new ArtistMetaData(artistName, [eventId.toString()]);
     }
 
+    self.dateToYMD = function (date) {
+        var d = date.getDate();
+        var m = date.getMonth() + 1;
+        var y = date.getFullYear();
+        return '' + y + '-' + (m <= 9 ? '0' + m : m) + '-' + (d <= 9 ? '0' + d : d);
+    };
+
     self.convertSongKickEventsToTasteProfileArtists = function (songKickEvents) {
         console.log("Converting " + songKickEvents.length + " SongKick events to EchoNest Taste Profile artists...");
 
         var artists = [];
 
-        $.each(songKickEvents, function (index, event) {
-            $.each(event.performance, function (index, performance) {
+        _.each(songKickEvents, function (event) {
+            _.each(event.performance, function (performance) {
                 // Check if any of the artists are already in the list.
                 var existingArtist = _.where(artists, {
                     artist_id: performance.artist.id
@@ -44,10 +51,9 @@ var SpotifyLive = (function (parent, $) {
         return artists;
     };
 
-    self.extractWorkableArtists = function (tasteProfile) {
-
+    self.extractUsableArtists = function (tasteProfile) {
         var filteredProfile = _.filter(tasteProfile, function (artist) {
-            return _.has(artist, 'foreign_ids') && _.has(artist, 'genres') && artist.genres.length > 0;
+            return _.has(artist, 'foreign_ids') && _.has(artist, 'terms') && artist.terms.length > 0;
         });
 
         console.log("Extracted " + filteredProfile.length + " 'usuable' artists from " + tasteProfile.length + ".");
@@ -55,23 +61,40 @@ var SpotifyLive = (function (parent, $) {
         return filteredProfile;
     };
 
-    self.extractArtistsBasedOnGenres = function (artists, genres) {
-        return _.filter(artists, function (artist) {
-            return _.some(artist.genres, function (genre) {
-                return _.contains(genres, genre.name);
-            })
-        });
-    };
+    self.getTermDataFromArtistCollection = function (artists) {
+        var termData = [];
 
-    self.getMostPopularGenresFromArtistCollection = function (artists, amount) {
-        return _.chain(artists)
-            .pluck('genres')
-            .flatten()
-            .countBy('name')
-            .pairs()
-            .sortBy(_.last)
-            .last(amount)
-            .value();
+        _.chain(artists)
+            .map(function (artist) {
+                // Pull out only terms the artists' frequently referred to as.
+                var terms = _.chain(artist.terms)
+                    .filter(function (term) {
+                        return term.frequency > .4;
+                    })
+                    .pluck('name')
+                    .value();
+
+                return {
+                    id: artist.foreign_ids[0].foreign_id,
+                    name: artist.artist_name,
+                    terms: terms
+                };
+            })
+        // Build an array of terms, each containing the artists that belong to it.
+        .each(function (artist) {
+            _.each(artist.terms, function (term) {
+                if (!_.has(termData, term)) {
+                    termData[term] = [];
+                }
+
+                termData[term].push({
+                    id: artist.id,
+                    name: artist.name
+                });
+            });
+        });
+
+        return termData;
     };
 
     return parent;

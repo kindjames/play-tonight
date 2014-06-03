@@ -43,14 +43,13 @@ var SpotifyLive = (function (parent, $) {
 
     self.uploadArtistsToTasteProfile = function (artists, successCallback) {
         self.getTasteProfileId(function (tasteProfileId) {
-            var artistActions = [];
 
-            $.each(artists, function (index, artist) {
+            var artistActions = _.map(artists, function (artist) {
                 artist.artist_id = "songkick:artist:" + artist.artist_id;
-                artistActions.push({
+                return {
                     action: "update",
                     item: artist
-                });
+                };
             });
 
             console.log("Adding " + artistActions.length + " artists to Taste Profile (id: " + tasteProfileId + ").");
@@ -61,10 +60,8 @@ var SpotifyLive = (function (parent, $) {
                 id: tasteProfileId,
                 data: JSON.stringify(artistActions),
             }, function () {
-
                 // Artificial delay to give EchoNest a chance to get their ducks in a row.
                 setTimeout(function () {
-
                     typeof successCallback === 'function' && successCallback(tasteProfileId);
                     $(document).trigger('taste-profile-completed', tasteProfileId);
                     console.log("Artists added to EchoNest Taste Profile (id: " + tasteProfileId + ").");
@@ -80,13 +77,8 @@ var SpotifyLive = (function (parent, $) {
         var artistItems = [];
 
         function processGetTasteProfileResponse(data) {
-
-            var totalResults = data.response.catalog.total;
-            var currentIndex = data.response.catalog.start;
             var artistCount = data.response.catalog.items.length;
-
             console.log("Received response containing " + data.response.catalog.items.length + " artists.");
-
             artistItems = artistItems.concat(data.response.catalog.items);
 
             if (artistCount < this.resultsPerPage) {
@@ -105,7 +97,7 @@ var SpotifyLive = (function (parent, $) {
                 data: {
                     api_key: apiKey,
                     id: tasteProfileId,
-                    bucket: ["genre", "id:spotify-WW", "hotttnesss"],
+                    bucket: ["terms", "id:spotify-WW", "hotttnesss"],
                     results: resultsPerPage,
                     start: index
                 },
@@ -122,7 +114,6 @@ var SpotifyLive = (function (parent, $) {
     }
 
     self.getPopularSongsForArtists = function (artists, successCallback) {
-
         var allSongIds = [];
         $.each(artists, function (index, artist) {
             console.log("Getting most popular songs for " + artist.artist_name + "...");
@@ -136,6 +127,7 @@ var SpotifyLive = (function (parent, $) {
                     limit: true,
                     results: 3,
                 },
+                cache: true,
                 traditional: true
             })
                 .done(function (data) {
