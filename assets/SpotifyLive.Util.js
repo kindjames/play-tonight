@@ -86,7 +86,6 @@ var SpotifyLive = (function (parent, $) {
                 if (!_.has(termData, term)) {
                     termData[term] = [];
                 }
-
                 termData[term].push({
                     id: artist.id,
                     name: artist.name

@@ -1,5 +1,14 @@
 body {
     background-color: #999;
+    -webkit-user-select: none;
+    /* Chrome/Safari */
+    -moz-user-select: none;
+    /* Firefox */
+    -ms-user-select: none;
+    /* IE10+ */
+    /* Rules below not implemented in browsers yet */
+    -o-user-select: none;
+    user-select: none;
 }
 ul {
     padding-left: 0;
@@ -48,7 +57,7 @@ ul {
 .tooltip {
     white-space: pre-wrap;
 }
-#term-grid li.selected-term {
+#term-grid li.selected {
     background-color: #999;
 }
 @-webkit-keyframes 'loadbars' {

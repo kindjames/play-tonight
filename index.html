@@ -18,16 +18,16 @@
         <div id=screens-container class=jumbotron style="display:none">
             <div id=landing-screen style="display:none">
                 <h1>Who's playing near me tonight?</h1>
-                <button id=find-artists-button class="btn btn-lg btn-success">Find out »</button>
+                <button id=find-artists-button class="btn btn-lg btn-success">Find out &raquo;</button>
             </div>
             <div id=term-screen style="display:none">
-                <h1>What are you into?</h1>
+                <h1>Select something you're into.</h1>
                 <ul id=term-grid class=clearfix></ul>
-                <button id=make-playlist-button class="btn btn-lg btn-success">Make playlist »</button>
+                <button id=make-playlist-button class="btn btn-lg btn-success" disabled=disabled>Make playlist &raquo;</button>
             </div>
             <div id=player-screen style="display:none">
-                <h1>Tonight's $placename playlist</h1>
                 <div id=spotify-player></div>
+                <button id=back-button class="btn btn-lg btn-success">&laquo; Back</button>
             </div>
         </div>
         <div id=notification-modal class=jumbotron role=alertdialog style="display:none">

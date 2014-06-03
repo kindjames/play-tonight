@@ -10,7 +10,7 @@ var SpotifyLive = (function (parent, $) {
         return (!str || 0 === str.length);
     }
 
-    var createTasteProfileId = function (successCallback) {
+    var _createTasteProfileId = function (successCallback) {
         $.post("http://developer.echonest.com/api/v4/tasteprofile/create", {
             api_key: echoNestApiKey,
             format: "json",
@@ -21,10 +21,10 @@ var SpotifyLive = (function (parent, $) {
         });
     };
 
-    var getSongIds = function (songs) {
+    var _getSongIds = function (songs) {
         var songIds = [];
 
-        $.each(songs, function (index, song) {
+        _.each(songs, function (song) {
             if (song.tracks && song.tracks.length > 0) {
                 songIds.push(song.tracks[0].foreign_id);
             }
@@ -35,7 +35,7 @@ var SpotifyLive = (function (parent, $) {
 
     self.getTasteProfileId = function (successCallback) {
         if (isEmpty(tasteProfileId)) {
-            createTasteProfileId(successCallback);
+            _createTasteProfileId(successCallback);
         } else {
             typeof successCallback === 'function' && successCallback(tasteProfileId);
         }
@@ -116,13 +116,13 @@ var SpotifyLive = (function (parent, $) {
     self.getPopularSongsForArtists = function (artists, successCallback) {
         var allSongIds = [];
         $.each(artists, function (index, artist) {
-            console.log("Getting most popular songs for " + artist.artist_name + "...");
+            console.log("Getting most popular songs for " + artist.name + "...");
             $.ajax({
                 url: "http://developer.echonest.com/api/v4/song/search",
                 data: {
                     api_key: echoNestApiKey,
                     bucket: ["tracks", "id:spotify-WW", "song_hotttnesss"],
-                    artist_id: artist.foreign_ids[0].foreign_id,
+                    artist_id: artist.id,
                     sort: "song_hotttnesss-desc",
                     limit: true,
                     results: 3,
@@ -131,9 +131,9 @@ var SpotifyLive = (function (parent, $) {
                 traditional: true
             })
                 .done(function (data) {
-                    var songIds = getSongIds(data.response.songs);
+                    var songIds = _getSongIds(data.response.songs);
 
-                    console.log("Received " + songIds.length + " song id's for " + artist.artist_name);
+                    console.log("Received " + songIds.length + " song id's for " + artist.name);
 
                     allSongIds.push(songIds);
 
