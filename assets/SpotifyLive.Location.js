@@ -1,6 +1,6 @@
-var SpotifyLive = (function (parent, $) {
+var spotifyLive = (function (parent, $) {
     "use strict";
-    var self = parent.Location = parent.Location || {};
+    var self = parent.location = parent.location || {};
     var area = null;
     var coordinates = null;
 
@@ -86,4 +86,4 @@ var SpotifyLive = (function (parent, $) {
         }
     };
     return parent;
-}(SpotifyLive || {}, jQuery));
+}(spotifyLive || {}, jQuery));

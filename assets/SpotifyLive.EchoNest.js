@@ -1,6 +1,6 @@
-var SpotifyLive = (function (parent, $) {
+var spotifyLive = (function (parent, $) {
     "use strict";
-    var self = parent.EchoNest = parent.EchoNest || {};
+    var self = parent.echoNest = parent.echoNest || {};
 
     var echoNestApiKey = "TADM7C6U9DKHCUBJD";
     var tasteProfileId = "";
@@ -145,4 +145,4 @@ var SpotifyLive = (function (parent, $) {
     };
 
     return parent;
-}(SpotifyLive || {}, jQuery));
+}(spotifyLive || {}, jQuery));

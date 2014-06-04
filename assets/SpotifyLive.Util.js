@@ -1,6 +1,6 @@
-var SpotifyLive = (function (parent, $) {
+var spotifyLive = (function (parent, $) {
     "use strict";
-    var self = parent.Util = parent.Util || {};
+    var self = parent.util = parent.util || {};
 
     function Artist(artistId, artistName, eventId) {
 
@@ -97,4 +97,4 @@ var SpotifyLive = (function (parent, $) {
     };
 
     return parent;
-}(SpotifyLive || {}, jQuery));
+}(spotifyLive || {}, jQuery));

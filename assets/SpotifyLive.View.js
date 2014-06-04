@@ -1,11 +1,11 @@
-var SpotifyLive = (function (parent, $) {
+var spotifyLive = (function (parent, $) {
     "use strict";
-    var self = parent.View = parent.View || {};
+    var self = parent.view = parent.view || {};
 
     var _maxSelectedTerms = 3;
     var _termData = [];
 
-    self.Controls = {
+    self.controls = {
         root: $(document),
         parentContainer: $('#container'),
         screensContainer: $('#screens-container'),
@@ -23,101 +23,98 @@ var SpotifyLive = (function (parent, $) {
         playerContainer: $('#spotify-player')
     };
 
-    self.ControlActions = {
+    self.controlActions = {
         setLoaderLabel: function (text) {
-            self.Controls.loaderLabel.fadeOut('fast', function () {
+            self.controls.loaderLabel.fadeOut('fast', function () {
                 $(this).text(text).fadeIn('fast');
             });
         },
         setErrorLabel: function (text) {
-            self.Controls.loaderLabel.fadeOut('fast', function () {
-                self.Controls.loadingAnimation.hide();
+            self.controls.loaderLabel.fadeOut('fast', function () {
+                self.controls.loadingAnimation.hide();
                 $(this).text(text).fadeIn('fast');
             });
         },
         showLoadingScreen: function (text) {
-            self.Controls.screensContainer.fadeOut(function () {
-                self.ControlActions.setLoaderLabel(text);
-                self.Controls.notificationModal.fadeIn();
+            self.controls.screensContainer.fadeOut(function () {
+                self.controlActions.setLoaderLabel(text);
+                self.controls.notificationModal.fadeIn();
             });
         },
         hideLoadingScreen: function (callback) {
-            self.Controls.notificationModal.fadeOut(callback).hide();
+            self.controls.notificationModal.fadeOut(callback).hide();
         },
         showScreen: function ($screen, callback) {
-            self.Controls.screensContainer.fadeOut(function () {
-                self.ControlActions.hideLoadingScreen(function () {
-                    self.Controls.allScreens.removeClass('active').hide();
+            self.controls.screensContainer.fadeOut(function () {
+                self.controlActions.hideLoadingScreen(function () {
+                    self.controls.allScreens.removeClass('active').hide();
                     $screen.addClass('active').show();
-                    self.Controls.screensContainer.fadeIn('fast', callback);
+                    self.controls.screensContainer.fadeIn('fast', callback);
                 });
             });
         }
     };
 
-    self.Actions = {
+    self.actions = {
         init: function () {
-            self.ControlActions.showScreen(self.Controls.allScreens.first());
-            self.Controls.findArtistsButton.on('click', self.Actions.onFindArtistsClick);
-            self.Controls.makePlaylistButton.on('click', self.Actions.onMakePlaylistClick);
-            self.Controls.backButton.on('click', self.Actions.onBackClick);
-            self.Controls.root.on('coordinates-found', self.Actions.onCoordinatesFound);
-            self.Controls.root.on('all-local-events-found', self.Actions.onAllEventsFound);
-            self.Controls.root.on('no-local-events-found', self.Actions.onNoEventsFound);
-            self.Controls.root.on('taste-profile-completed', self.Actions.onTasteProfileUploaded);
+            self.controlActions.showScreen(self.controls.allScreens.first());
+            self.controls.findArtistsButton.on('click', self.actions.onFindArtistsClick);
+            self.controls.makePlaylistButton.on('click', self.actions.onMakePlaylistClick);
+            self.controls.backButton.on('click', self.actions.onBackClick);
+            self.controls.root.on('coordinates-found', self.actions.onCoordinatesFound);
+            self.controls.root.on('all-local-events-found', self.actions.onAllEventsFound);
+            self.controls.root.on('taste-profile-completed', self.actions.onTasteProfileUploaded);
+            self.controls.root.on('no-local-events-found', self.actions.onNoLocalEventsFound);
         },
         onFindArtistsClick: function () {
-            self.ControlActions.showLoadingScreen('Finding your location...');
-            SpotifyLive.Location.getCurrentCoordinates();
+            self.controlActions.showLoadingScreen('Finding your location...');
+            spotifyLive.location.getCurrentCoordinates();
         },
         onMakePlaylistClick: function () {
-            self.ControlActions.showLoadingScreen('Finding songs...');
-            var key = $('li.selected', self.Controls.termGrid).text();
+            self.controlActions.showLoadingScreen('Finding songs...');
+            var key = $('li.selected', self.controls.termGrid).text();
 
-            SpotifyLive.EchoNest.getPopularSongsForArtists(_termData[key], function (songIds) {
-                SpotifyLive.Location.getCurrentCityAndCountry(function (area) {
+            spotifyLive.echoNest.getPopularSongsForArtists(_termData[key], function (songIds) {
+                spotifyLive.location.getCurrentCityAndCountry(function (area) {
                     var title = _ucfirst(key) + " in " + area.city + " tonight.";
                     self.displaySpotifyTrackset(songIds, title);
-                    self.ControlActions.showScreen(self.Controls.playerScreen);
+                    self.controlActions.showScreen(self.controls.playerScreen);
                 });
             });
         },
         onBackClick: function () {
-            self.ControlActions.showScreen(self.Controls.termScreen, function () {
+            self.controlActions.showScreen(self.controls.termScreen, function () {
                 self.removeSpotifyTrackset();
             });
         },
         onCoordinatesFound: function (event, coordinates) {
-            self.ControlActions.setLoaderLabel('Looking for events...');
-            SpotifyLive.Location.getCurrentCityAndCountryFromCoordinates(coordinates);
-            SpotifyLive.SongKick.getAllEventsForDate(new Date(), coordinates);
+            self.controlActions.setLoaderLabel('Looking for events...');
+            spotifyLive.location.getCurrentCityAndCountryFromCoordinates(coordinates);
+            console.log("Contacting SongKick API for artists playing locally tonight...");
+            spotifyLive.songKick.getAllEvents("qnqepvaYb1LXkz0T", new Date(), coordinates);
         },
         onAllEventsFound: function (event, data) {
-            SpotifyLive.Location.getCurrentCityAndCountry(function (area) {
-                var normalisedArtists = SpotifyLive.Util.convertSongKickEventsToTasteProfileArtists(data.events);
-                SpotifyLive.EchoNest.uploadArtistsToTasteProfile(normalisedArtists);
+            spotifyLive.location.getCurrentCityAndCountry(function (area) {
+                var normalisedArtists = spotifyLive.util.convertSongKickEventsToTasteProfileArtists(data.events);
+                spotifyLive.echoNest.uploadArtistsToTasteProfile(normalisedArtists);
             });
         },
-        onNoEventsFound: function (event, data) {
-            self.ControlActions.setErrorLabel('Seems no one\'s playing in town tonight :(');
-            console.log("No events found - checking for events on the next day...");
-            var newDate = new Date();
-            newDate.setDate(data.date.getDate() + 1);
-            SpotifyLive.SongKick.getAllEventsForDate(newDate, data.coordinates);
+        onNoLocalEventsFound: function (event, data) {
+            self.controlActions.setErrorLabel('Seems no one\'s playing in town tonight :(');
         },
         onTasteProfileUploaded: function (event, tasteProfileId) {
-            SpotifyLive.EchoNest.getTasteProfile(tasteProfileId, self.Actions.processTasteProfile);
+            spotifyLive.echoNest.getTasteProfile(tasteProfileId, self.actions.processTasteProfile);
         },
         processTasteProfile: function (artists) {
-            var usableArtists = SpotifyLive.Util.extractUsableArtists(artists);
+            var usableArtists = spotifyLive.util.extractUsableArtists(artists);
             if (usableArtists.length > 0) {
-                self.ControlActions.setLoaderLabel("Getting metadata on " + usableArtists.length + " artists...");
-                _termData = SpotifyLive.Util.getTermDataFromArtistCollection(usableArtists);
+                self.controlActions.setLoaderLabel("Getting metadata on " + usableArtists.length + " artists...");
+                _termData = spotifyLive.util.getTermDataFromArtistCollection(usableArtists);
 
                 _injectTerms(_termData, 15);
-                self.ControlActions.showScreen(self.Controls.termScreen);
+                self.controlActions.showScreen(self.controls.termScreen);
             } else {
-                self.ControlActions.setErrorLabel('Seems no one\'s playing in town tonight :(');
+                self.controlActions.setErrorLabel('Seems no one\'s playing in town tonight :(');
             }
         }
     };
@@ -138,10 +135,10 @@ var SpotifyLive = (function (parent, $) {
             .reverse()
             .join("");
 
-        self.Controls.termGrid.html(termElementsHtml).fadeIn();
+        self.controls.termGrid.html(termElementsHtml).fadeIn();
 
-        $('li', self.Controls.termGrid).on('click', function () {
-            self.Controls.makePlaylistButton.prop('disabled', false);
+        $('li', self.controls.termGrid).on('click', function () {
+            self.controls.makePlaylistButton.prop('disabled', false);
 
             var $this = $(this);
             var $selectedTermTile = $('#term-grid li.selected');
@@ -167,14 +164,14 @@ var SpotifyLive = (function (parent, $) {
             return songId.replace('spotify-WW:track:', '');
         });
 
-        self.Controls.playerContainer.html(
+        self.controls.playerContainer.html(
             '<iframe src="https://embed.spotify.com/?uri=spotify:trackset:' + title + ':' + spotifySongIds.join(',') + '" width="300" height="380" frameborder="0" allowtransparency="true"></iframe>');
     };
 
     self.removeSpotifyTrackset = function () {
-        self.Controls.playerContainer.html('');
+        self.controls.playerContainer.html('');
     };
 
     return parent;
 
-}(SpotifyLive || {}, jQuery));
+}(spotifyLive || {}, jQuery));
