@@ -88,10 +88,11 @@ var spotifyLive = (function (parent, $) {
             });
         },
         onCoordinatesFound: function (event, coordinates) {
-            self.controlActions.setLoaderLabel('Looking for events...');
-            spotifyLive.location.getCurrentCityAndCountryFromCoordinates(coordinates);
-            console.log("Contacting SongKick API for artists playing locally tonight...");
-            spotifyLive.songKick.getAllEvents("qnqepvaYb1LXkz0T", new Date(), coordinates);
+            spotifyLive.location.getCurrentCityAndCountryFromCoordinates(coordinates, function (area) {
+                self.controlActions.setLoaderLabel('Looking for events in ' + area.city + '...');
+                console.log("Contacting SongKick API for artists playing locally tonight...");
+                spotifyLive.songKick.getAllEvents("qnqepvaYb1LXkz0T", new Date(), coordinates);
+            });
         },
         onAllEventsFound: function (event, data) {
             spotifyLive.location.getCurrentCityAndCountry(function (area) {
