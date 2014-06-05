@@ -14,6 +14,12 @@ ul {
     padding-left: 0;
     list-style: none;
 }
+ul li {
+    float: left;
+}
+ul.powered-by li {
+    margin-left:25px;
+}
 .jumbotron {
     background-color: #666;
     color: #fff;
@@ -35,7 +41,6 @@ ul {
 #term-grid li {
     width: 100px;
     height: 100px;
-    float: left;
     display: block;
     background-color: #777;
     margin: 9px;

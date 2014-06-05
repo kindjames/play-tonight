@@ -9,7 +9,7 @@ var spotifyLive = (function (parent, $) {
         root: $(document),
         parentContainer: $('#container'),
         screensContainer: $('#screens-container'),
-        allScreens: $('#screens-container > div'),
+        allScreens: $('#screens-container > div > div'),
         findArtistsButton: $('#find-artists-button'),
         makePlaylistButton: $('#make-playlist-button'),
         backButton: $('#back-button'),
