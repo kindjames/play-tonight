@@ -10,13 +10,28 @@ var spotifyLive = (function (parent, $) {
         this.accuracy = accuracy;
     }
 
-    var getAreaInfo = function (addressComponents, componentName, getShortName) {
+    var getAreaInfo = function (addressComponents, componentNames, getShortName) {
         // Loop through 'address_components' and return item with 'type' equal to componentName.
-        var addressComponent = addressComponents.filter(function (item, index) {
-            return ($.inArray(componentName, item.types) !== -1);
+        var addressComponent = _.find(addressComponents, function (addressComponent) {
+            return _.some(addressComponent.types, function (typeName) {
+                if (_.isArray(componentNames)) {
+                    return _.some(componentNames, function (componentName) {
+                        return (typeName == componentName);
+                    });
+                } else {
+                    return typeName == componentNames;
+                }
+            });
         });
 
-        return getShortName ? addressComponent[0].short_name : addressComponent[0].long_name;
+        if (_.isUndefined(addressComponent)) {
+            addressComponent = {
+                short_name: "unknown",
+                long_name: "unknown"
+            }
+        }
+
+        return getShortName ? addressComponent.short_name : addressComponent.long_name;
     };
 
     function Area(city, country) {
@@ -65,8 +80,8 @@ var spotifyLive = (function (parent, $) {
                 },
                 function (data) {
                     area = new Area(
-                        getAreaInfo(data.results[0].address_components, "postal_town", true),
-                        getAreaInfo(data.results[0].address_components, "country", false)
+                        getAreaInfo(data.results[0].address_components, ["postal_town", "administrative_area_level_1"], false),
+                        getAreaInfo(data.results[0].address_components, "country", true)
                     );
 
                     console.log("Found area to be " + area.city + " in " + area.country);

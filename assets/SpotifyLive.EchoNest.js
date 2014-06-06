@@ -4,7 +4,7 @@ var spotifyLive = (function (parent, $) {
 
     var echoNestApiKey = "TADM7C6U9DKHCUBJD";
     var tasteProfileId = "";
-    var echoNestProfileUploadCallbackDelay = 750;
+    var echoNestProfileUploadCallbackDelay = 500;
 
     function isEmpty(str) {
         return (!str || 0 === str.length);
@@ -43,7 +43,6 @@ var spotifyLive = (function (parent, $) {
 
     self.uploadArtistsToTasteProfile = function (artists, successCallback) {
         self.getTasteProfileId(function (tasteProfileId) {
-
             var artistActions = _.map(artists, function (artist) {
                 artist.artist_id = "songkick:artist:" + artist.artist_id;
                 return {
@@ -113,8 +112,10 @@ var spotifyLive = (function (parent, $) {
         getTasteProfileDataPage(0, echoNestApiKey, tasteProfileId, 100);
     }
 
-    self.getPopularSongsForArtists = function (artists, successCallback) {
+    self.getPopularSongsForArtists = function (artists, successCallback, errorCallback) {
         var allSongIds = [];
+        var maxArtists = 10;
+
         $.each(artists, function (index, artist) {
             console.log("Getting most popular songs for " + artist.name + "...");
             $.ajax({
@@ -137,7 +138,16 @@ var spotifyLive = (function (parent, $) {
 
                     allSongIds.push(songIds);
 
-                    if ((index + 1) == artists.length) {
+                    if ((index + 1) == (artists.length || maxArtists)) {
+                        typeof successCallback === 'function' && successCallback(_.flatten(allSongIds));
+                    }
+                })
+                .error(function () {
+                    if (allSongIds.length == 0) {
+                        console.log("Error retreiving song id's.");
+                        typeof errorCallback === 'function' && errorCallback();
+                    } else {
+                        console.log("Error retreiving some id's - using what we've got.");
                         typeof successCallback === 'function' && successCallback(_.flatten(allSongIds));
                     }
                 });

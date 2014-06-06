@@ -66,17 +66,17 @@ var spotifyLive = (function (parent, $) {
 
         _.chain(artists)
             .map(function (artist) {
-                // Pull out only terms the artists' frequently referred to as.
+                // Pull out only terms the artists are frequently referred to as.
                 var terms = _.chain(artist.terms)
                     .filter(function (term) {
                         return term.frequency > .4;
                     })
                     .pluck('name')
                     .value();
-
                 return {
                     id: artist.foreign_ids[0].foreign_id,
                     name: artist.artist_name,
+                    popularity: artist.hotttnesss,
                     terms: terms
                 };
             })
@@ -88,9 +88,20 @@ var spotifyLive = (function (parent, $) {
                 }
                 termData[term].push({
                     id: artist.id,
+                    popularity: artist.popularity,
                     name: artist.name
                 });
             });
+        });
+
+        _.each(_.keys(termData), function (key) {
+            termData[key] = _.chain(termData[key])
+                .sortBy(function (artist) {
+                    return artist.popularity;
+                })
+                .last(8)
+                .value()
+                .reverse();
         });
 
         return termData;

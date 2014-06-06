@@ -148,7 +148,9 @@ var spotifyLive = (function (parent, $) {
                 $selectedTermTile.removeClass('selected');
                 $this.addClass('selected');
             }
-        }).tooltip();
+        }).tooltip({
+            placement: 'auto top'
+        });
     };
 
     var _ucfirst = function (str, force) {
