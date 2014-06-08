@@ -29,7 +29,7 @@ var spotifyLive = (function (parent, $) {
     };
 
     self.debug = function(info) {
-        //console.log(info);
+        console.log(info);
     };
 
     self.dateToYMD = function (date) {

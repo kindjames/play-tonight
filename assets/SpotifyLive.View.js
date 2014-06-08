@@ -64,7 +64,7 @@ var spotifyLive = (function (parent, $) {
             self.controls.root.on('term-selected', self.actions.onTermSelected);
         },
         onFindArtistsClick: function () {
-            self.controlActions.setLoaderLabel('Looking for local events...');
+            self.controlActions.showLoadingScreen('Looking for local events...');
             spotifyLive.util.debug("Contacting SongKick API for artists playing locally tonight...");
             spotifyLive.songKick.getAllEvents("qnqepvaYb1LXkz0T", new Date());
         },
