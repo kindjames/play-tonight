@@ -72,13 +72,11 @@ var spotifyLive = (function (parent, $) {
         onTermSelected: function (event, data) {
             self.controlActions.showLoadingScreen('Finding songs...');
             var key = data;
-
             spotifyLive.echoNest.getPopularSongsForArtists(_termData[key], function (songIds) {
-                spotifyLive.location.getCurrentCityAndCountry(function (area) {
-                    var title = _ucfirst(key) + " in " + area.city + " tonight.";
-                    self.displaySpotifyTrackset(songIds, title);
-                    self.controlActions.showScreen(self.controls.playerScreen);
-                });
+                var area = spotifyLive.util.getLocation();
+                var title = _ucfirst(key) + " in " + area.city + " tonight";
+                self.displaySpotifyTrackset(songIds, title);
+                self.controlActions.showScreen(self.controls.playerScreen);
             });
         },
         onBackClick: function () {
@@ -87,10 +85,8 @@ var spotifyLive = (function (parent, $) {
             });
         },
         onAllEventsFound: function (event, data) {
-            spotifyLive.location.getCurrentCityAndCountry(function (area) {
-                var normalisedArtists = spotifyLive.util.convertSongKickEventsToTasteProfileArtists(data.events);
-                spotifyLive.echoNest.uploadArtistsToTasteProfile(normalisedArtists);
-            });
+            var normalisedArtists = spotifyLive.util.convertSongKickEventsToTasteProfileArtists(data.events);
+            spotifyLive.echoNest.uploadArtistsToTasteProfile(normalisedArtists);
         },
         onNoLocalEventsFound: function (event, data) {
             self.controlActions.setErrorLabel('Seems no one\'s playing in town tonight :(');

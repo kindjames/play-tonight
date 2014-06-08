@@ -115,9 +115,10 @@ var spotifyLive = (function (parent, $) {
     self.getPopularSongsForArtists = function (artists, successCallback, errorCallback) {
         var allSongIds = [];
         var maxArtists = 10;
+        var songResults = 3;
 
         $.each(artists, function (index, artist) {
-            console.log("Getting most popular songs for " + artist.name + "...");
+            console.log("Getting " + songResults + " most popular songs for " + artist.name + "...");
             $.ajax({
                 url: "http://developer.echonest.com/api/v4/song/search",
                 data: {
@@ -126,7 +127,7 @@ var spotifyLive = (function (parent, $) {
                     artist_id: artist.id,
                     sort: "song_hotttnesss-desc",
                     limit: true,
-                    results: 3,
+                    results: songResults,
                 },
                 cache: true,
                 traditional: true

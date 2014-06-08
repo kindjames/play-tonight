@@ -2,6 +2,19 @@ var spotifyLive = (function (parent, $) {
     "use strict";
     var self = parent.util = parent.util || {};
 
+    var area = {};
+
+    var _setLocationFromMetroArea = function (metroArea) {
+        area = {
+            city: metroArea.displayName,
+            country: metroArea.country.displayName,
+        };
+    };
+
+    self.getLocation = function () {
+        return area;
+    };
+
     function Artist(artistId, artistName, eventId) {
 
         function ArtistMetaData(artist_name, eventIds) {
@@ -29,6 +42,12 @@ var spotifyLive = (function (parent, $) {
     };
 
     self.convertSongKickEventsToTasteProfileArtists = function (songKickEvents) {
+        if (songKickEvents.length == 0) {
+            throw new Error("Cannot convert SK to EN profile: zero events");
+        }
+
+        _setLocationFromMetroArea(_.first(songKickEvents).venue.metroArea);
+
         console.log("Converting " + songKickEvents.length + " SongKick events to EchoNest Taste Profile artists...");
 
         var artists = [];
