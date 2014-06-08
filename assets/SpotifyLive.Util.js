@@ -28,7 +28,9 @@ var spotifyLive = (function (parent, $) {
         return area;
     };
 
-    self.debug = {};
+    self.debug = function(info) {
+        //console.log(info);
+    };
 
     self.dateToYMD = function (date) {
         var d = date.getDate(),
