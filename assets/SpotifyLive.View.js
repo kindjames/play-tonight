@@ -11,7 +11,6 @@ var spotifyLive = (function (parent, $) {
         screensContainer: $('#screens-container'),
         allScreens: $('#screens-container > div > div'),
         findArtistsButton: $('#find-artists-button'),
-        makePlaylistButton: $('#make-playlist-button'),
         backButton: $('#back-button'),
         notificationModal: $('#notification-modal'),
         loadingAnimation: $('#bar-loader'),
@@ -59,20 +58,20 @@ var spotifyLive = (function (parent, $) {
         init: function () {
             self.controlActions.showScreen(self.controls.allScreens.first());
             self.controls.findArtistsButton.on('click', self.actions.onFindArtistsClick);
-            self.controls.makePlaylistButton.on('click', self.actions.onMakePlaylistClick);
             self.controls.backButton.on('click', self.actions.onBackClick);
-            self.controls.root.on('coordinates-found', self.actions.onCoordinatesFound);
             self.controls.root.on('all-local-events-found', self.actions.onAllEventsFound);
             self.controls.root.on('taste-profile-completed', self.actions.onTasteProfileUploaded);
             self.controls.root.on('no-local-events-found', self.actions.onNoLocalEventsFound);
+            self.controls.root.on('term-selected', self.actions.onTermSelected);
         },
         onFindArtistsClick: function () {
-            self.controlActions.showLoadingScreen('Finding your location...');
-            spotifyLive.location.getCurrentCoordinates();
+            self.controlActions.setLoaderLabel('Looking for local events...');
+            console.log("Contacting SongKick API for artists playing locally tonight...");
+            spotifyLive.songKick.getAllEvents("qnqepvaYb1LXkz0T", new Date());
         },
-        onMakePlaylistClick: function () {
+        onTermSelected: function (event, data) {
             self.controlActions.showLoadingScreen('Finding songs...');
-            var key = $('li.selected', self.controls.termGrid).text();
+            var key = data;
 
             spotifyLive.echoNest.getPopularSongsForArtists(_termData[key], function (songIds) {
                 spotifyLive.location.getCurrentCityAndCountry(function (area) {
@@ -85,13 +84,6 @@ var spotifyLive = (function (parent, $) {
         onBackClick: function () {
             self.controlActions.showScreen(self.controls.termScreen, function () {
                 self.removeSpotifyTrackset();
-            });
-        },
-        onCoordinatesFound: function (event, coordinates) {
-            spotifyLive.location.getCurrentCityAndCountryFromCoordinates(coordinates, function (area) {
-                self.controlActions.setLoaderLabel('Looking for events in ' + area.city + '...');
-                console.log("Contacting SongKick API for artists playing locally tonight...");
-                spotifyLive.songKick.getAllEvents("qnqepvaYb1LXkz0T", new Date(), coordinates);
             });
         },
         onAllEventsFound: function (event, data) {
@@ -138,19 +130,15 @@ var spotifyLive = (function (parent, $) {
 
         self.controls.termGrid.html(termElementsHtml).fadeIn();
 
-        $('li', self.controls.termGrid).on('click', function () {
-            self.controls.makePlaylistButton.prop('disabled', false);
-
-            var $this = $(this);
-            var $selectedTermTile = $('#term-grid li.selected');
-
-            if ($selectedTermTile.text() != $this.text()) {
-                $selectedTermTile.removeClass('selected');
-                $this.addClass('selected');
-            }
-        }).tooltip({
-            placement: 'auto top'
+        var $termTiles = $('li', self.controls.termGrid).on('click', function () {
+            spotifyLive.view.controls.root.trigger('term-selected', $(this).text());
         });
+
+        if (!spotifyLive.util.isTouchDevice()) {
+            $termTiles.tooltip({
+                placement: 'auto top'
+            });
+        }
     };
 
     var _ucfirst = function (str, force) {

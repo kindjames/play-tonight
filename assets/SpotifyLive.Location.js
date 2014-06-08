@@ -58,7 +58,7 @@ var spotifyLive = (function (parent, $) {
                 console.log(coords);
 
                 typeof successCallback === 'function' && successCallback(coords);
-                $(document).trigger('coordinates-found', coords);
+                spotifyLive.view.controls.root.trigger('coordinates-found', coords);
             };
             if (navigator.geolocation) {
                 navigator.geolocation.getCurrentPosition(success, errorCallback, opts);
@@ -69,7 +69,6 @@ var spotifyLive = (function (parent, $) {
     };
 
     self.getCurrentCityAndCountryFromCoordinates = function (coordinates, successCallback) {
-
         if (!!area) {
             typeof successCallback === 'function' && successCallback(area);
         } else {
@@ -85,7 +84,7 @@ var spotifyLive = (function (parent, $) {
                     );
 
                     console.log("Found area to be " + area.city + " in " + area.country);
-                    $(document).trigger('area-found', area);
+                    spotifyLive.view.controls.root.trigger('area-found', area);
                     typeof successCallback === 'function' && successCallback(area);
                 });
         }

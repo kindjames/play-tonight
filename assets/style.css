@@ -1,9 +1,12 @@
 html {
+    background-color: rgba(0, 0, 0, .6);
+    /*
     background: url(../img/bg.jpg) no-repeat center center fixed;
     -webkit-background-size: cover;
     -moz-background-size: cover;
     -o-background-size: cover;
     background-size: cover;
+*/
 }
 body {
     background-color: transparent;
@@ -51,7 +54,6 @@ ul.powered-by li {
 #term-grid li {
     width: 100px;
     height: 100px;
-    display: block;
     background-color: rgba(0, 0, 0, .3);
     margin: 9px;
     position: relative;
@@ -73,7 +75,7 @@ ul.powered-by li {
 .tooltip {
     white-space: pre-wrap;
 }
-#term-grid li.selected {
+#term-grid li:hover {
     background-color: rgba(255, 255, 255, .6);
 }
 @-webkit-keyframes 'loadbars' {

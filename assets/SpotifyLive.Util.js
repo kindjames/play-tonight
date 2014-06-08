@@ -24,6 +24,10 @@ var spotifyLive = (function (parent, $) {
         return '' + y + '-' + (m <= 9 ? '0' + m : m) + '-' + (d <= 9 ? '0' + d : d);
     };
 
+    self.isTouchDevice = function () {
+        return (('ontouchstart' in window) || (navigator.MaxTouchPoints > 0) || (navigator.msMaxTouchPoints > 0));
+    };
+
     self.convertSongKickEventsToTasteProfileArtists = function (songKickEvents) {
         console.log("Converting " + songKickEvents.length + " SongKick events to EchoNest Taste Profile artists...");
 

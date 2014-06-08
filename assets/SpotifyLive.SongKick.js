@@ -2,11 +2,10 @@ var spotifyLive = (function (parent, $) {
     "use strict";
     var self = parent.songKick = parent.songKick || {};
 
-    self.getAllEvents = function (apiKey, date, coordinates) {
+    self.getAllEvents = function (apiKey, date) {
 
         var _date = date,
             _formattedDate = spotifyLive.util.dateToYMD(date),
-            _coordinates = coordinates,
             _eventItems = [],
             _apiKey = apiKey;
 
@@ -17,7 +16,7 @@ var spotifyLive = (function (parent, $) {
                 dataType: "jsonp",
                 data: {
                     apikey: _apiKey,
-                    location: "geo:" + _coordinates.latitude + "," + _coordinates.longitude,
+                    location: "clientip",
                     min_date: _formattedDate,
                     max_date: _formattedDate,
                     page: page,
