@@ -10,7 +10,7 @@ var spotifyLive = (function (parent, $) {
             _apiKey = apiKey;
 
         function getSongKickEventsPage(page) {
-            console.log(" -> page " + page + "...");
+            spotifyLive.util.debug(" -> page " + page + "...");
             $.ajax({
                 url: "http://api.songkick.com/api/3.0/events.json",
                 dataType: "jsonp",
@@ -29,15 +29,15 @@ var spotifyLive = (function (parent, $) {
         };
 
         function successCallback(data) {
-            var totalResults = data.resultsPage.totalEntries;
-            var currentPage = data.resultsPage.page;
-            var perPage = data.resultsPage.perPage;
+            var totalResults = data.resultsPage.totalEntries,
+                currentPage = data.resultsPage.page,
+                perPage = data.resultsPage.perPage;
 
             if (totalResults == 0) {
                 $(document).trigger('no-local-events-found');
-                console.log("No events found.");
+                spotifyLive.util.debug("No events found.");
             } else {
-                console.log("Received response of page " + currentPage + " containing " + data.resultsPage.results.event.length + " events.");
+                spotifyLive.util.debug("Received response of page " + currentPage + " containing " + data.resultsPage.results.event.length + " events.");
                 _eventItems = _eventItems.concat(data.resultsPage.results.event);
                 if (currentPage * perPage < totalResults) {
                     getSongKickEventsPage(this.currentPage + 1);

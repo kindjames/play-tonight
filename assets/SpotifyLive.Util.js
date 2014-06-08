@@ -1,22 +1,9 @@
 var spotifyLive = (function (parent, $) {
     "use strict";
-    var self = parent.util = parent.util || {};
-
-    var area = {};
-
-    var _setLocationFromMetroArea = function (metroArea) {
-        area = {
-            city: metroArea.displayName,
-            country: metroArea.country.displayName,
-        };
-    };
-
-    self.getLocation = function () {
-        return area;
-    };
+    var self = parent.util = parent.util || {},
+        area = {};
 
     function Artist(artistId, artistName, eventId) {
-
         function ArtistMetaData(artist_name, eventIds) {
             this.artist_name = artist_name;
             this.eventIds = eventIds;
@@ -30,10 +17,23 @@ var spotifyLive = (function (parent, $) {
         this.item_keyvalues = new ArtistMetaData(artistName, [eventId.toString()]);
     }
 
+    var _setLocationFromMetroArea = function (metroArea) {
+        area = {
+            city: metroArea.displayName,
+            country: metroArea.country.displayName,
+        };
+    };
+
+    self.getLocation = function () {
+        return area;
+    };
+
+    self.debug = {};
+
     self.dateToYMD = function (date) {
-        var d = date.getDate();
-        var m = date.getMonth() + 1;
-        var y = date.getFullYear();
+        var d = date.getDate(),
+            m = date.getMonth() + 1,
+            y = date.getFullYear();
         return '' + y + '-' + (m <= 9 ? '0' + m : m) + '-' + (d <= 9 ? '0' + d : d);
     };
 
@@ -48,7 +48,7 @@ var spotifyLive = (function (parent, $) {
 
         _setLocationFromMetroArea(_.first(songKickEvents).venue.metroArea);
 
-        console.log("Converting " + songKickEvents.length + " SongKick events to EchoNest Taste Profile artists...");
+        spotifyLive.util.debug("Converting " + songKickEvents.length + " SongKick events to EchoNest Taste Profile artists...");
 
         var artists = [];
 
@@ -65,7 +65,7 @@ var spotifyLive = (function (parent, $) {
                         performance.artist.displayName, event.id));
                 } else {
                     // Artist's playing at more than one event that day, so add the additional event id.
-                    console.log("Duplicate found - " + performance.artist.displayName);
+                    spotifyLive.util.debug("Duplicate found - " + performance.artist.displayName);
                     existingArtist[0].addEventId(event.id);
                 }
             });
@@ -79,7 +79,7 @@ var spotifyLive = (function (parent, $) {
             return _.has(artist, 'foreign_ids') && _.has(artist, 'terms') && artist.terms.length > 0;
         });
 
-        console.log("Extracted " + filteredProfile.length + " 'usuable' artists from " + tasteProfile.length + ".");
+        spotifyLive.util.debug("Extracted " + filteredProfile.length + " 'usuable' artists from " + tasteProfile.length + ".");
 
         return filteredProfile;
     };

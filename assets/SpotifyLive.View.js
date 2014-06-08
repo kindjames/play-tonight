@@ -1,9 +1,8 @@
 var spotifyLive = (function (parent, $) {
     "use strict";
-    var self = parent.view = parent.view || {};
-
-    var _maxSelectedTerms = 3;
-    var _termData = [];
+    var self = parent.view = parent.view || {},
+        _maxSelectedTerms = 3,
+        _termData = [];
 
     self.controls = {
         root: $(document),
@@ -66,7 +65,7 @@ var spotifyLive = (function (parent, $) {
         },
         onFindArtistsClick: function () {
             self.controlActions.setLoaderLabel('Looking for local events...');
-            console.log("Contacting SongKick API for artists playing locally tonight...");
+            spotifyLive.util.debug("Contacting SongKick API for artists playing locally tonight...");
             spotifyLive.songKick.getAllEvents("qnqepvaYb1LXkz0T", new Date());
         },
         onTermSelected: function (event, data) {
@@ -146,7 +145,6 @@ var spotifyLive = (function (parent, $) {
     }
 
     self.displaySpotifyTrackset = function (songIds, title) {
-
         var spotifySongIds = _.map(songIds, function (songId) {
             return songId.replace('spotify-WW:track:', '');
         });
