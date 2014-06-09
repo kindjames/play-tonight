@@ -1,10 +1,9 @@
 var spotifyLive = (function (parent, $) {
     "use strict";
-    var self = parent.echoNest = parent.echoNest || {};
-
-    var echoNestApiKey = "TADM7C6U9DKHCUBJD";
-    var tasteProfileId = "";
-    var echoNestProfileUploadCallbackDelay = 500;
+    var self = parent.echoNest = parent.echoNest || {},
+        echoNestApiKey = "TADM7C6U9DKHCUBJD",
+        tasteProfileId = "",
+        echoNestProfileUploadCallbackDelay = 500;
 
     function isEmpty(str) {
         return (!str || 0 === str.length);
@@ -51,7 +50,7 @@ var spotifyLive = (function (parent, $) {
                 };
             });
 
-            console.log("Adding " + artistActions.length + " artists to Taste Profile (id: " + tasteProfileId + ").");
+            spotifyLive.util.debug("Adding " + artistActions.length + " artists to Taste Profile (id: " + tasteProfileId + ").");
 
             $.post("http://developer.echonest.com/api/v4/tasteprofile/update", {
                 api_key: echoNestApiKey,
@@ -63,7 +62,7 @@ var spotifyLive = (function (parent, $) {
                 setTimeout(function () {
                     typeof successCallback === 'function' && successCallback(tasteProfileId);
                     $(document).trigger('taste-profile-completed', tasteProfileId);
-                    console.log("Artists added to EchoNest Taste Profile (id: " + tasteProfileId + ").");
+                    spotifyLive.util.debug("Artists added to EchoNest Taste Profile (id: " + tasteProfileId + ").");
 
                 }, echoNestProfileUploadCallbackDelay);
             });
@@ -71,13 +70,13 @@ var spotifyLive = (function (parent, $) {
     };
 
     self.getTasteProfile = function (tasteProfileId, successCallback) {
-        console.log("Contacting EchoNest API for Taste Profile (id: " + tasteProfileId + ")...");
+        spotifyLive.util.debug("Contacting EchoNest API for Taste Profile (id: " + tasteProfileId + ")...");
 
         var artistItems = [];
 
         function processGetTasteProfileResponse(data) {
             var artistCount = data.response.catalog.items.length;
-            console.log("Received response containing " + data.response.catalog.items.length + " artists.");
+            spotifyLive.util.debug("Received response containing " + data.response.catalog.items.length + " artists.");
             artistItems = artistItems.concat(data.response.catalog.items);
 
             if (artistCount < this.resultsPerPage) {
@@ -90,7 +89,7 @@ var spotifyLive = (function (parent, $) {
         };
 
         var getTasteProfileDataPage = function (index, apiKey, tasteProfileId, resultsPerPage) {
-            console.log(" -> index " + index + "...");
+            spotifyLive.util.debug(" -> index " + index + "...");
             $.ajax({
                 url: "http://developer.echonest.com/api/v4/tasteprofile/read",
                 data: {
@@ -113,11 +112,12 @@ var spotifyLive = (function (parent, $) {
     }
 
     self.getPopularSongsForArtists = function (artists, successCallback, errorCallback) {
-        var allSongIds = [];
-        var maxArtists = 10;
+        var allSongIds = [],
+            maxArtists = 10,
+            songResults = 3;
 
         $.each(artists, function (index, artist) {
-            console.log("Getting most popular songs for " + artist.name + "...");
+            spotifyLive.util.debug("Getting " + songResults + " most popular songs for " + artist.name + "...");
             $.ajax({
                 url: "http://developer.echonest.com/api/v4/song/search",
                 data: {
@@ -126,7 +126,7 @@ var spotifyLive = (function (parent, $) {
                     artist_id: artist.id,
                     sort: "song_hotttnesss-desc",
                     limit: true,
-                    results: 3,
+                    results: songResults,
                 },
                 cache: true,
                 traditional: true
@@ -134,7 +134,7 @@ var spotifyLive = (function (parent, $) {
                 .done(function (data) {
                     var songIds = _getSongIds(data.response.songs);
 
-                    console.log("Received " + songIds.length + " song id's for " + artist.name);
+                    spotifyLive.util.debug("Received " + songIds.length + " song id's for " + artist.name);
 
                     allSongIds.push(songIds);
 
@@ -144,10 +144,10 @@ var spotifyLive = (function (parent, $) {
                 })
                 .error(function () {
                     if (allSongIds.length == 0) {
-                        console.log("Error retreiving song id's.");
+                        spotifyLive.util.debug("Error retreiving song id's.");
                         typeof errorCallback === 'function' && errorCallback();
                     } else {
-                        console.log("Error retreiving some id's - using what we've got.");
+                        spotifyLive.util.debug("Error retreiving some id's - using what we've got.");
                         typeof successCallback === 'function' && successCallback(_.flatten(allSongIds));
                     }
                 });
