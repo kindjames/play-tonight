@@ -28,10 +28,11 @@ ul.powered-by li {
     margin-left: 25px;
 }
 .jumbotron {
-    background-color: rgba(255, 255, 255, .2);
+    background-color: rgba(255, 255, 255, .5);
     color: #fff;
     margin-top: 40px;
     text-align: center;
+    color: #333;
 }
 .jumbotron .btn {
     padding: 14px 24px;
@@ -51,7 +52,8 @@ ul.powered-by li {
 #term-grid li {
     width: 100px;
     height: 100px;
-    background-color: rgba(0, 0, 0, .3);
+    display: block;
+    background-color: rgba(0, 0, 0, .5);
     margin: 9px;
     position: relative;
     cursor: pointer;
@@ -72,8 +74,12 @@ ul.powered-by li {
 .tooltip {
     white-space: pre-wrap;
 }
+#term-grid li.selected,
 #term-grid li:hover {
-    background-color: rgba(255, 255, 255, .6);
+    background-color: rgba(255, 255, 255, .8);
+}
+#term-grid li:hover span {
+    color: #000;
 }
 @-webkit-keyframes 'loadbars' {
     0% {
@@ -90,7 +96,7 @@ ul.powered-by li {
     }
 }
 #bar-loader li {
-    background-color: #fff;
+    background-color: #333;
     width: 10px;
     height: 10px;
     float: left;
