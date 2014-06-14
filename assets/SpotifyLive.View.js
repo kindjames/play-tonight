@@ -146,7 +146,8 @@ var spotifyLive = (function (parent, $) {
 
     self.displaySpotifyTrackset = function (songIds, title) {
         var spotifySongIds = _.map(songIds, function (songId) {
-            return songId.replace('spotify-WW:track:', '');
+            return songId.replace('spotify:track:', '')
+            .replace('spotify-WW:track:', '');
         });
 
         self.controls.playerContainer.html(

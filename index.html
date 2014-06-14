@@ -5,11 +5,17 @@
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name='robots' content='noindex,follow' />
     <title>Tonight's playlist</title>
+
+    <link rel="shortcut icon" href="http://actnfgr.com/wp-content/themes/actionfigure/favicon.ico">
+    <link rel="apple-touch-icon" href="http://actnfgr.com/wp-content/themes/actionfigure/images/apple-touch-icon.png">
+    <link rel="apple-touch-icon" sizes="72x72" href="http://actnfgr.com/wp-content/themes/actionfigure/images/apple-touch-icon-72x72.png">
+    <link rel="apple-touch-icon" sizes="114x114" href="http://actnfgr.com/wp-content/themes/actionfigure/images/apple-touch-icon-114x114.png">
 
     <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css">
     <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap-theme.min.css">
-    <link rel=stylesheet href="style.css?3">
+    <link rel=stylesheet href="style.css?4">
 </head>
 
 <body>
@@ -23,10 +29,8 @@
         <div id=screens-container style="display:none">
             <div class=jumbotron>
                 <div id=landing-screen style="display:none">
-                    <!--
-                    <p style="font-size:18px; text-align:left">Action Figure is a full service digital agency that creates campaigns for the new creative ecosystem based in London, NYC, LA, Singapore and Sydney. This is an example of our work. As preferred partners Spotify an example. We decided to create a tool that would create daily playlists featuring the artists that were playing in the city that night to give a daily sound of the city. We want to create ideas and execute objectives that help Spotify generate more income. We have heaps of idea. A halloween playlist featuring only music by dead people. A playlist that reminds you of the song that was playing when you went through puberty based on your birthday. Or, maybe a complimentary app which aggregates the music we hear restaurant based on the people dinning, or dancing or spinning on stationary bikes. The point is - we're obsessive geeks that want to work with you to change the way brands reach you audience.</p>
-                    <p>So let us begin...</p>
--->
+                    <p>Action Figure is a preferred creative supplier for Spotify's with offices in NYC, LA, London, Singapore and Sydney. We design creative concepts and build tools that clients love. Here (below) is a little example we cooked up that enables Spotify users to hear what their city sounds like based on personal preferences, local live events and trending artists.</p>
+                    <p>See more examples of our design, developer, audio and branded content work on <a href="http://actnfgr.com" target="_blank">our website</a> and get in touch anytime via <a href="mailto:hello@actnfgr.com">hello@actnfgr.com</a>.</p>
                     <h1>What does your city sound like tonight?</h1>
                     <button id=find-artists-button class="btn btn-lg btn-success">Find out &raquo;</button>
                 </div>
@@ -84,14 +88,16 @@
     <script src="//cdnjs.cloudflare.com/ajax/libs/underscore.js/1.6.0/underscore-min.js"></script>
     <script src="//netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js"></script>
 
-    <!--
+
+<!--
     <script src="assets/spotifyLive.util.js"></script>
     <script src="assets/spotifyLive.songKick.js"></script>
     <script src="assets/spotifyLive.echoNest.js"></script>
     <script src="assets/spotifyLive.view.js"></script>
 -->
 
-    <script src="spotifyLive.min.js"></script>
+
+    <script src="spotifyLive.min.js?1"></script>
 
     <script>
         (function () {

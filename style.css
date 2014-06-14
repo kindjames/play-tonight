@@ -17,6 +17,9 @@ body {
     -o-user-select: none;
     user-select: none;
 }
+a {
+    color: #db14c6;
+}
 ul {
     padding-left: 0;
     list-style: none;
@@ -42,6 +45,10 @@ ul.powered-by li {
 }
 .jumbotron h1 {
     font-size: 40px;
+}
+#landing-screen p {
+    font-size: 18px;
+    text-align: left
 }
 #action-figure-logo {
     margin-top: 40px;
