@@ -1,5 +1,5 @@
 html {
-    background: url(../img/bg.jpg) no-repeat center center fixed;
+    background: rgba(0,0,0,.3);
     -webkit-background-size: cover;
     -moz-background-size: cover;
     -o-background-size: cover;
